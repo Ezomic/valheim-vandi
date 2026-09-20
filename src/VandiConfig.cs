@@ -20,7 +20,6 @@ namespace Vandi
     internal static class VandiConfig
     {
         internal static ConfigEntry<bool> Enabled;
-        internal static ConfigEntry<float> Amount;
         internal static ConfigEntry<bool> Verbose;
 
         internal static void Bind(ConfigFile cfg)
@@ -30,13 +29,6 @@ namespace Vandi
             // and a switch that pretends otherwise is a lie somebody will debug.
             Enabled = cfg.Bind("Vandi", "Enabled", true,
                 "Off leaves the plugin loaded and changing nothing.");
-
-            // A multiplier rather than a flat number wherever there is a designed spread to
-            // preserve: it keeps the gap between a bronze one and a flametal one, and it
-            // lands modded content somewhere sensible instead of flattening it onto vanilla.
-            Amount = cfg.Bind("Vandi", "Amount", 1f,
-                "What this actually does, in the units a player thinks in. 1 = unchanged. "
-                + "Say what happens at the extremes, and say which other setting beats it.");
 
             // Not synced by intent - see the plugin. A diagnostic flag is personal, and a
             // host turning on someone else's logging is not a thing anybody asked for.

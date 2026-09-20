@@ -2,8 +2,19 @@
 
 ## 0.1.0 - unreleased
 
-First version.
+The first version is the whole mod. It is written down here before it is built, because the
+design went public for opinions first and it can still change on the strength of them.
 
-Entries here are prose, not bullet lists of commits. Say what changed from the player's
-side, then why, then what it used to do wrong - including the part that made the old
-behaviour look correct. A changelog nobody can act on is a version number with decoration.
+### Planned
+
+- **Starred creatures get likelier in a biome whose boss you have killed.** Five percentage
+  points a kill on vanilla's ten, capped at twenty five extra, so a biome whose boss you have
+  killed five times spawns starred creatures a third of the time. The cap on stars themselves
+  does not move.
+- **A boss you have killed before comes back harder.** One star stronger per repeat kill by the
+  same player, capped at two.
+- **All of it is per player.** Your own kills decide what you meet, so two people standing in
+  the same forest can be having different evenings.
+- **Credit goes to whoever made the offering**, even if they are dead, offline or far away when
+  the boss falls. Helping with somebody else's boss earns nothing, which is what keeps the
+  record personal.
