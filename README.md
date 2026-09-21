@@ -120,6 +120,15 @@ Neither has been run. Two things they do not cover: what a second player sees wh
 somebody else's zone, and the rule that helping with a friend's boss earns nothing, which needs
 two clients.
 
+## Bugs and ideas
+
+Both go to the site. [longhouse.thijssensoftware.nl/bugs](https://longhouse.thijssensoftware.nl/bugs)
+is for anything broken, and [longhouse.thijssensoftware.nl/ideas](https://longhouse.thijssensoftware.nl/ideas)
+is for what a mod should do next. You can vote on other people's ideas there as well.
+
+Signing in takes a Steam or Discord account. I work from that list, so the votes decide what
+I pick up next.
+
 ## Licence
 
 MIT. See `LICENSE`.
