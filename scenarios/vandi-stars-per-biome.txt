@@ -1,0 +1,51 @@
+# Vandi - the star chance follows your own boss kills, biome by biome.
+#
+# What it proves: the boost is added where the boss is dead and nowhere else, it grows a kill
+# at a time, and it stops at the cap. It reads the one number every star roll in the game
+# comes from rather than spawning creatures and counting stars, because counting stars is a
+# test of the random number generator.
+#
+# Run it in the Meadows. The numbers below are vanilla 10 plus the configured 5 a kill, so if
+# StarChancePerKill or StarChanceCap have been edited in this profile the expected values move
+# with them and this file is wrong rather than the mod.
+
+clear
+god
+ghost
+
+# A clean record for this character: these are the keys the mod keeps its counts in, and the
+# scenario owns them for the length of the run.
+unkey vandi_p_$player_defeated_eikthyr
+wait 1
+
+# Nothing killed, nothing added. Vanilla is 10, and the tolerance is there because the game
+# multiplies by a biome sector that is not exactly 1 everywhere.
+starchance 10 1
+
+# One kill of the Meadows boss, and the Meadows gets meaner.
+key vandi_p_$player_defeated_eikthyr 1
+wait 1
+starchance 15 1
+
+key vandi_p_$player_defeated_eikthyr 3
+wait 1
+starchance 25 1
+
+# Five kills is the cap at the default five points a kill, and a sixth changes nothing. A mod
+# that let this keep climbing would end with a biome nobody walks through.
+key vandi_p_$player_defeated_eikthyr 5
+wait 1
+starchance 35 1
+
+key vandi_p_$player_defeated_eikthyr 9
+wait 1
+starchance 35 1
+
+# Somebody else's boss does nothing here. This is the whole promise of the mod: the biome you
+# have beaten is the one that changes, and the Black Forest's boss has no say in the Meadows.
+unkey vandi_p_$player_defeated_eikthyr
+key vandi_p_$player_defeated_gdking 5
+wait 1
+starchance 10 1
+
+unkey vandi_p_$player_defeated_gdking

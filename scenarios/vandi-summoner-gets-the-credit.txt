@@ -1,0 +1,52 @@
+# Vandi - the altar, the stars, and who the kill belongs to.
+#
+# STAND AT EIKTHYR'S ALTAR before pressing Run. Everything here needs the real summoning path,
+# because that is what the mod hooks: the offering says who made it, the altar's owner reads
+# that when the boss appears, and the kill is credited off the stamp on the creature. Spawning
+# Eikthyr with the scenario's own spawn step would test the spawn step.
+#
+# If the goto step below says it cannot find the altar, the prefab name in this file is what
+# to correct: it is the object carrying the OfferingBowl, not the location.
+#
+# What it proves, in order: a boss summoned with nothing on the record arrives plain, the kill
+# is credited to the summoner, and the next one arrives with a star because of it.
+
+clear
+god
+ghost
+
+# A clean record for this character. The scenario owns this key for the length of the run.
+unkey vandi_p_$player_defeated_eikthyr
+wait 1
+
+goto Eikthyrnest
+give TrophyDeer:2
+wait 1
+
+# The offering. Five seconds is the altar's own spawn delay; the wait is longer to leave room
+# for the effects and for the stamp to be written by whoever owns the altar.
+use Eikthyrnest
+wait 9
+
+# Never killed him, so he is exactly the boss the game makes.
+level Eikthyr 1
+
+kill Eikthyr
+wait 3
+
+# The credit. This is the whole point of the mod: it went to the character that paid for the
+# offering, and it is one, not two.
+keyis vandi_p_$player_defeated_eikthyr 1
+
+# And again, which is where the record starts to cost something. One previous kill is one
+# star, and one star is level 2.
+give TrophyDeer:2
+use Eikthyrnest
+wait 9
+level Eikthyr 2
+
+kill Eikthyr
+wait 3
+keyis vandi_p_$player_defeated_eikthyr 2
+
+unkey vandi_p_$player_defeated_eikthyr

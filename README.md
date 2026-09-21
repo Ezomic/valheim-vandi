@@ -3,8 +3,9 @@
 Creatures wear more stars in a biome whose boss you keep killing, and that boss comes back
 harder the next time you summon it. All of it follows your own kills, not the server's.
 
-**Nothing is built yet.** This repository holds the design and an empty scaffold. The idea is
-on the site so people can argue with it before it becomes code:
+**Written, never run.** The code is here and it compiles. Nothing has been played, and the two
+scenarios in `scenarios/` have not been replayed in a world yet. The design is on the site,
+where players were asked about it before any of this existed:
 [Stars worth earning, and bosses that remember you](https://longhouse.thijssensoftware.nl/devlog/stars-worth-earning).
 
 Vandi is Old Norse for trouble.
@@ -20,7 +21,7 @@ got there yet.
 The idea came from CRVD in the Discord: let the biomes you have beaten be the ones that get
 harder.
 
-## What it would do
+## What it does
 
 - Killing a boss raises the chance of starred creatures **in that boss's own biome**. The Elder
   changes the Black Forest, Moder changes the Mountains. A biome whose boss you have never
@@ -61,6 +62,63 @@ and either one can be uninstalled without the other noticing.
 Everyone will need it, at the same build. The star roll happens on whichever client owns the
 zone a creature spawns in, so one player without Vandi spawns ordinary creatures for everybody
 standing around them.
+
+## How it keeps the count
+
+Your kills live in the world's own global keys, one per player per boss, as
+`vandi_p_<playerid>_<bosskey>` with the number as its value. Not on your character, and the
+reason is the credit rule above: the machine that records a kill is whichever client owned the
+boss when it died, and that is often not yours. The world is the one place both machines can
+reach.
+
+A count is written only when it changes, which is at most five times per boss per player,
+because the boost stops at five kills. That matters more than it looks: accepting one global
+key makes the server rebroadcast the whole key list to everybody connected, so a mod that
+wrote one every few seconds would be felt by people who do not have it installed.
+
+## What decides what, and where
+
+- **The star chance** is one postfix on `SpawnSystem.GetLevelUpChance`, which is the single
+  roll behind open-world spawns and every placed spawner, so camps and crypts are covered
+  without naming them. It runs on whichever client owns the zone, and asks that client's own
+  player. Two people standing in the same forest therefore see one answer, the owner's. A
+  player alone in a biome always sees their own.
+- **A dungeon counts as the biome above it.** Interiors sit directly above their entrance and
+  biome lookups compare only x and z, so a crypt is Swamp and a frost cave is Mountain without
+  this mod knowing what a dungeon is.
+- **The boss's stars** are set by whichever client owns the altar, reading who made the
+  offering, and the summoner's id is stamped on the boss itself so the credit survives the
+  handover to a different machine.
+- **The kill is recorded** by the client that owned the boss, from that stamp. A boss that was
+  never summoned through an altar credits nobody.
+
+## Settings
+
+The file is `BepInEx/config/ezomic.valheim.vandi.cfg`, written on first run.
+
+| Key | Default | What it does |
+| --- | --- | --- |
+| `Enabled` | true | Off leaves the plugin loaded and changing nothing |
+| `Verbose` | false | Log every roll this changes and every kill it credits |
+| `StarChancePerKill` | 5 | Percentage points added per kill of that biome's boss |
+| `StarChanceCap` | 25 | The most that can be added, whatever the count |
+| `BossBiomes` | the eight pairings | `boss:biome`, comma separated, spelled the same as Utangard and Vaettir spell it |
+| `HarderBosses` | true | A summoned boss you have killed before arrives with stars |
+| `BossStarCap` | 2 | The most stars a summoned boss can gain |
+
+On a server with Core the host's values apply to everyone, so these are the server's decision
+and not each player's.
+
+## Testing
+
+`scenarios/` holds two Devkit scenarios. `vandi-stars-per-biome` seeds a record and states what
+the star roll should be at each step, including that a boss from another biome changes nothing.
+`vandi-summoner-gets-the-credit` needs you standing at Eikthyr's altar and drives the real
+summoning path, because the boss half is only real through an altar.
+
+Neither has been run. Two things they do not cover: what a second player sees while standing in
+somebody else's zone, and the rule that helping with a friend's boss earns nothing, which needs
+two clients.
 
 ## Licence
 
