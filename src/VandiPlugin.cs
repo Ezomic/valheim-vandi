@@ -41,6 +41,23 @@ namespace Vandi
         internal static ManualLogSource Log;
 
         /// <summary>
+        /// Says something once per message, however often it is reached.
+        ///
+        /// Config is parsed from an Update-driven path, so a misspelled biome in BossBiomes
+        /// would otherwise write the same line sixty times a second for the rest of the
+        /// session and bury whatever came before it.
+        /// </summary>
+        internal static void LogOnce(string message)
+        {
+            if (message == null || !_said.Add(message)) return;
+
+            Log.LogWarning(message);
+        }
+
+        private static readonly System.Collections.Generic.HashSet<string> _said =
+            new System.Collections.Generic.HashSet<string>();
+
+        /// <summary>
         /// Whether Core answered at load. Worth keeping even when nothing reads it yet: the
         /// difference between gated and ungated is invisible to a player otherwise, and this
         /// is what a warning on spawn would be driven by.
@@ -65,7 +82,8 @@ namespace Vandi
             // every type in the DLL, so a half-written patch class in another file goes live
             // the moment it compiles.
             _harmony = new Harmony(PluginGuid);
-            _harmony.PatchAll(typeof(VandiPatches));
+            _harmony.PatchAll(typeof(Stars));
+            _harmony.PatchAll(typeof(Summon));
 
             // The startup line every mod in the suite writes. It is how a log answers "which
             // build of what is actually loaded" without anyone guessing.

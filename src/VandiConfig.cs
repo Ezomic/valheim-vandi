@@ -22,6 +22,13 @@ namespace Vandi
         internal static ConfigEntry<bool> Enabled;
         internal static ConfigEntry<bool> Verbose;
 
+        internal static ConfigEntry<float> StarChancePerKill;
+        internal static ConfigEntry<float> StarChanceCap;
+        internal static ConfigEntry<string> BossBiomes;
+
+        internal static ConfigEntry<bool> HarderBosses;
+        internal static ConfigEntry<int> BossStarCap;
+
         internal static void Bind(ConfigFile cfg)
         {
             // Every mod here has one, and it means the same thing every time: loaded, bound,
@@ -33,8 +40,53 @@ namespace Vandi
             // Not synced by intent - see the plugin. A diagnostic flag is personal, and a
             // host turning on someone else's logging is not a thing anybody asked for.
             Verbose = cfg.Bind("Vandi", "Verbose", false,
-                "Write what was found and what was changed to BepInEx/LogOutput.log. Off "
-                + "unless something looks wrong; it is one line per item.");
+                "Write every star roll this changes, and every kill it credits, to "
+                + "BepInEx/LogOutput.log. Off unless something looks wrong; a busy zone "
+                + "rolls this many times a second.");
+
+            // Percentage points on vanilla's ten, not a multiplier. A multiplier would make
+            // the first kill worth almost nothing and the fifth worth a great deal, and the
+            // thing being promised is "the biome you have beaten gets meaner", which is a
+            // flat progression a player can feel after one kill.
+            StarChancePerKill = cfg.Bind("Stars", "StarChancePerKill", 5f,
+                "Percentage points added to a creature's star chance for each time you have "
+                + "killed that biome's boss. Vanilla is 10, so one kill makes it 15. It is "
+                + "the chance of gaining a star that moves, never the number a creature can "
+                + "have: two stars stays the ceiling.");
+
+            StarChanceCap = cfg.Bind("Stars", "StarChanceCap", 25f,
+                "The most that can be added, however many times you kill the boss. At the "
+                + "default five a kill this is reached at five kills and a fully farmed "
+                + "biome sits at 35 percent. Past that the biome stops being a place you "
+                + "visit and becomes a place you avoid, which is the opposite of the point.");
+
+            // Boss keys rather than prefab names, because the defeat key is what the game
+            // itself writes when the boss dies and what every other mod here already reads.
+            // The spelling is deliberately identical to Vaettir's hod jib and Utangard's
+            // gate: two mods disagreeing about which boss owns which biome would be two
+            // mods giving one player different answers out of one set of keys.
+            BossBiomes = cfg.Bind("Stars", "BossBiomes",
+                "defeated_eikthyr:meadows, defeated_gdking:blackforest, "
+                + "defeated_bonemass:swamp, defeated_bonemass:ocean, "
+                + "defeated_dragon:mountain, defeated_goblinking:plains, "
+                + "defeated_queen:mistlands, defeated_fader:ashlands, "
+                + "defeated_fader:deepnorth",
+                "boss:biome, comma separated. Killing that boss raises the star chance in "
+                + "that biome and nowhere else, so a biome whose boss you have never beaten "
+                + "is exactly as the game ships it. A boss may own more than one biome, "
+                + "which is how Bonemass covers the Ocean and Fader the Deep North - the "
+                + "same pairing Utangard gates with.");
+
+            HarderBosses = cfg.Bind("Bosses", "HarderBosses", true,
+                "A boss you have killed before comes back with stars on it when you summon "
+                + "it again. Off leaves bosses exactly as the game makes them and keeps the "
+                + "star half of the mod, which is the half the biome feels.");
+
+            BossStarCap = cfg.Bind("Bosses", "BossStarCap", 2,
+                "The most stars a summoned boss can gain, at one star per repeat kill. Two "
+                + "is what a creature can reach in vanilla, and a two star boss hits hard "
+                + "enough that a third would be asking for a different party rather than a "
+                + "better one.");
         }
     }
 }
