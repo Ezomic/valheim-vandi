@@ -1,12 +1,18 @@
 # Vandi - the altar, the stars, and who the kill belongs to.
 #
-# STAND AT EIKTHYR'S ALTAR before pressing Run. Everything here needs the real summoning path,
-# because that is what the mod hooks: the offering says who made it, the altar's owner reads
-# that when the boss appears, and the kill is credited off the stamp on the creature. Spawning
-# Eikthyr with the scenario's own spawn step would test the spawn step.
+# It brings its own altar. `location Eikthyrnest` spawns a real Eikthyr altar in front of you
+# through the game's own test-spawn call, and it is gone on the next load, so stand anywhere
+# with a little open ground ahead - the Meadows is simplest.
 #
-# If the goto step below says it cannot find the altar, the prefab name in this file is what
-# to correct: it is the object carrying the OfferingBowl, not the location.
+# Everything here needs the real summoning path, because that is what the mod hooks: the
+# offering says who made it, the altar's owner reads that when the boss appears, and the kill is
+# credited off the stamp on the creature. Spawning Eikthyr with the scenario's own spawn step
+# would test the spawn step. So the trophies go in through `offer`, which is
+# OfferingBowl.UseItem - the call the hotbar makes, and the one that reaches InitiateSpawnBoss.
+#
+# The first draft of this file used `goto` and `use` on the altar, failed at step 6 on its first
+# run on 2026-09-24, and could never have passed: both steps search building pieces, an altar is
+# part of a location and not a piece, and pressing E on this kind of altar does nothing anyway.
 #
 # What it proves, in order: a boss summoned with nothing on the record arrives plain, the kill
 # is credited to the summoner, and the next one arrives with a star because of it.
@@ -19,13 +25,14 @@ ghost
 unkey vandi_p_$player_defeated_eikthyr
 wait 1
 
-goto Eikthyrnest
+location Eikthyrnest
+wait 3
 give TrophyDeer:2
 wait 1
 
 # The offering. Five seconds is the altar's own spawn delay; the wait is longer to leave room
 # for the effects and for the stamp to be written by whoever owns the altar.
-use Eikthyrnest
+offer TrophyDeer
 wait 9
 
 # Never killed him, so he is exactly the boss the game makes.
@@ -41,7 +48,8 @@ keyis vandi_p_$player_defeated_eikthyr 1
 # And again, which is where the record starts to cost something. One previous kill is one
 # star, and one star is level 2.
 give TrophyDeer:2
-use Eikthyrnest
+wait 1
+offer TrophyDeer
 wait 9
 level Eikthyr 2
 
