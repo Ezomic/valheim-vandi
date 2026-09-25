@@ -46,8 +46,13 @@ namespace Vandi
 
         [HarmonyPatch(typeof(OfferingBowl), "InitiateSpawnBoss")]
         [HarmonyPostfix]
-        private static void Offered(OfferingBowl __instance)
+        private static void Offered(OfferingBowl __instance, bool __runOriginal)
         {
+            // A postfix runs even when a prefix stopped the summon, and one does: Utangard
+            // refuses an altar in a biome the group has not earned. Recording that as an
+            // offering would name a summoner for a boss that never came.
+            if (!__runOriginal) return;
+
             if (!VandiConfig.Enabled.Value || Player.m_localPlayer == null) return;
 
             string boss = Bosses.KeyOf(__instance == null ? null : __instance.m_bossPrefab);
