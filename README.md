@@ -82,9 +82,8 @@ Another mod can ask how many times a player has killed a boss through `Vandi.Van
 `BossKills(playerId, bossKey)`, `LocalBossKills(bossKey)` for the player at the keyboard, and
 `CountsKillsOf(bossKey)` to check that Vandi records that boss at all. It only reads.
 
-Use that rather than the key above. The key layout is Vandi's own business and can change. A
-mod reading it directly would not break when it does, it would read zero kills for everyone
-and say nothing.
+Use that rather than the key above. The key layout is Vandi's own business and can change, and
+a mod reading the key directly would then read zero kills for everyone without saying so.
 
 Malmr, the vein mining mod, is the one that uses it. A metal's vein mining
 opens only once you have beaten that biome's boss at one star, which is your second kill.
