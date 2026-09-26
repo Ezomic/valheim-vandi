@@ -1,6 +1,6 @@
 # Vandi - the altar, the stars, and who the kill belongs to.
 #
-# It brings its own altar. `location Eikthyrnest` spawns a real Eikthyr altar in front of you
+# It brings its own altar. `location Eikthyrnir` spawns a real Eikthyr altar in front of you
 # through the game's own test-spawn call, and it is gone on the next load, so stand anywhere
 # with a little open ground ahead - the Meadows is simplest.
 #
@@ -25,7 +25,10 @@ ghost
 unkey vandi_p_$player_defeated_eikthyr
 wait 1
 
-location Eikthyrnest
+# Eikthyrnir, the location's name since before 1.0. The first run asked for Eikthyrnest,
+# which does not exist, and TestSpawnLocation refuses an unknown name without a word -
+# Devkit's `location` step now lists the names it does know when that happens.
+location Eikthyrnir
 wait 3
 give TrophyDeer:2
 wait 1
