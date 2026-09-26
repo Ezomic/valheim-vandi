@@ -18,3 +18,9 @@ design went public for opinions first and it can still change on the strength of
 - **Credit goes to whoever made the offering**, even if they are dead, offline or far away when
   the boss falls. Helping with somebody else's boss earns nothing, which is what keeps the
   record personal.
+
+### For other mods
+
+- **Other mods can read your kill count.** `VandiApi` answers how many times a player has
+  killed a boss, and whether Vandi counts that boss at all. It only reads. Malmr uses it to
+  open a metal's vein mining once that biome's boss has been beaten at one star.
