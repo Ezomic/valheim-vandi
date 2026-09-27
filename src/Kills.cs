@@ -56,8 +56,8 @@ namespace Vandi
         ///
         /// Anybody may write a global key - RPC_SetGlobalKey has no permission check - so this
         /// is not a privilege, it is a publication. It is called on one machine only, the one
-        /// that owned the boss when it died, because Character.OnDeath runs there and nowhere
-        /// else.
+        /// that owned the boss when it died - Summon.Died checks IsOwner, because a boss with a
+        /// death animation reaches OnDeath on every client that is animating it.
         /// </summary>
         internal static int Add(long playerId, string bossKey)
         {

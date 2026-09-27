@@ -23,9 +23,9 @@ namespace Vandi
     ///   usually but not always the summoner. It reads the key, gives the boss its stars out
     ///   of that player's record, and stamps the id on the boss's own ZDO so the answer
     ///   travels with the creature rather than with the world.
-    /// - <b>The death.</b> Character.OnDeath runs on the owning client only - its own
-    ///   !IsOwner early return is dead code - so that machine reads the stamp and records the
-    ///   kill for whoever is named on it.
+    /// - <b>The death.</b> The owning client reads the stamp and records the kill for whoever
+    ///   is named on it. Only the owner: a boss with a death animation reaches OnDeath on
+    ///   every client animating it, so the postfix checks IsOwner itself (see Died).
     ///
     /// The global key is a handover between two machines a few seconds apart, not a record.
     /// Two people summoning the same boss type in the same five seconds would hand the second
@@ -133,6 +133,16 @@ namespace Vandi
 
             ZNetView nview = __instance.GetComponent<ZNetView>();
             if (nview == null || !nview.IsValid()) return;
+
+            // The owner only, and this line is load-bearing in 1.0. A creature with
+            // m_deathAnimation does not die through CheckDeath's direct call: its death
+            // animation fires CharacterAnimEvent.Die, which calls OnDeath on EVERY client
+            // animating it, and non-owners leave through OnDeath's own IsOwner return - which
+            // a postfix runs after anyway. Without this, each player standing at the altar
+            // read the same stamp and added a kill, so one boss could count two or three
+            // times. Found on 2026-09-27 while building Utangard's kill tally; the comment
+            // above, and CLAUDE.md, had called that IsOwner return dead code.
+            if (!nview.IsOwner()) return;
 
             long summoner = nview.GetZDO().GetLong(SummonerKey, 0L);
             if (summoner == 0L)
