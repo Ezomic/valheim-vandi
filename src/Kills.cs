@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Globalization;
+using HarmonyLib;
 
 namespace Vandi
 {
@@ -78,6 +80,86 @@ namespace Vandi
         private static string Key(long playerId, string bossKey)
         {
             return (Prefix + playerId + "_" + bossKey).ToLowerInvariant();
+        }
+
+        /// <summary>
+        /// `vandi` in the console: the boss kills this world has credited to you, one line per boss
+        /// Vandi counts.
+        ///
+        /// Written for paired-kill-credit-killer.txt in Utangard's scenarios (LHM-36), which has to
+        /// say the killer's record went up by exactly the kills it made and not by one more. The
+        /// record is a global key, and a scenario can compare a key's value but not read it, while
+        /// a character that has played the world already has some number there. So the only honest
+        /// check is before and after, and that needs the number printed.
+        ///
+        /// isCheat false: it reads the world's keys, which every client already holds, and changes
+        /// nothing.
+        /// </summary>
+        [HarmonyPatch]
+        internal static class Readout
+        {
+            /// <summary>Every biome BossBiomes could name, walked in progression order.</summary>
+            private static readonly Heightmap.Biome[] Biomes =
+            {
+                Heightmap.Biome.Meadows, Heightmap.Biome.BlackForest, Heightmap.Biome.Swamp,
+                Heightmap.Biome.Mountain, Heightmap.Biome.Plains, Heightmap.Biome.Mistlands,
+                Heightmap.Biome.AshLands, Heightmap.Biome.DeepNorth, Heightmap.Biome.Ocean,
+            };
+
+            /// <summary>
+            /// Process-wide: Terminal's command table is a private static nothing clears, so a
+            /// second registration would be a duplicate that outlives the world.
+            /// </summary>
+            private static bool _registered;
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Terminal), "InitTerminal")]
+            private static void Register()
+            {
+                if (_registered) return;
+                _registered = true;
+
+                new Terminal.ConsoleCommand("vandi",
+                    "the boss kills this world has credited to you, per boss Vandi counts",
+                    new Terminal.ConsoleEvent(OnCommand), isCheat: false);
+            }
+
+            private static void OnCommand(Terminal.ConsoleEventArgs args)
+            {
+                Terminal term = args.Context;
+                if (term == null) return;
+
+                Player player = Player.m_localPlayer;
+                if (player == null || ZoneSystem.instance == null)
+                {
+                    term.AddString("vandi: no character in a world yet");
+                    return;
+                }
+
+                long id = player.GetPlayerID();
+
+                term.AddString("vandi: " + player.GetPlayerName() + ", id "
+                    + id.ToString(CultureInfo.InvariantCulture)
+                    + ", enabled=" + (VandiConfig.Enabled.Value ? "yes" : "no")
+                    + "   (kills of a boss you summoned at an altar, as this world has recorded them)");
+
+                // A boss may own two biomes, as Bonemass and Fader do by default, and is listed once.
+                HashSet<string> shown = new HashSet<string>();
+
+                foreach (Heightmap.Biome biome in Biomes)
+                {
+                    List<string> keys = Bosses.For(biome);
+                    if (keys == null) continue;
+
+                    foreach (string key in keys)
+                    {
+                        if (!shown.Add(key)) continue;
+
+                        term.AddString("vandi " + key + "="
+                            + Count(id, key).ToString(CultureInfo.InvariantCulture));
+                    }
+                }
+            }
         }
     }
 }

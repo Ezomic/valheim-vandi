@@ -24,3 +24,8 @@ design went public for opinions first and it can still change on the strength of
 - **Other mods can read your kill count.** `VandiApi` answers how many times a player has
   killed a boss, and whether Vandi counts that boss at all. It only reads. Malmr uses it to
   open a metal's vein mining once that biome's boss has been beaten at one star.
+
+### Console
+
+- `vandi` prints the boss kills this world has credited to you, one line per boss Vandi
+  counts. It only reads, so it is not a cheat and needs no devcommands.
