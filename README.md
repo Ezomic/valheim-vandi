@@ -27,9 +27,12 @@ harder.
 - Killing a boss raises the chance of starred creatures **in that boss's own biome**. The Elder
   changes the Black Forest, Moder changes the Mountains. A biome whose boss you have never
   beaten stays exactly as it was.
-- Every repeat kill of that boss adds more. Five percentage points a kill on vanilla's ten,
-  stopping at twenty five extra, so a biome whose boss you have killed five times spawns starred
-  creatures a third of the time. Creatures still cap at two stars: only the odds move, never the
+- Every repeat kill of that boss adds more: five percentage points a kill, stopping at twenty
+  five extra. The points go on top of whatever the game already rolls where the creature spawns.
+  That is ten in an ordinary stretch of a default world, so there a biome whose boss you have
+  killed five times spawns starred creatures about a third of the time. The game rolls higher in
+  parts of the world far from the centre and lower on a world set to fewer stars, and the same
+  twenty five go on top of that. Creatures still cap at two stars: only the odds move, never the
   ceiling.
 - Each repeat kill also makes that boss **one star harder** the next time you summon it, capped
   at two.
@@ -93,8 +96,9 @@ opens only once you have beaten that biome's boss at one star, which is your sec
 
 - **The star chance** is one postfix on `SpawnSystem.GetLevelUpChance`, which is the single
   roll behind open-world spawns and every placed spawner, so camps and crypts are covered
-  without naming them. It runs on whichever client owns the zone, and asks that client's own
-  player. Two people standing in the same forest therefore see one answer, the owner's. A
+  without naming them. Vandi's points are added after the game's own factors, the world's star
+  setting and the land's multiplier, and are not scaled by either. It runs on whichever client
+  owns the zone, and asks that client's own player. Two people standing in the same forest therefore see one answer, the owner's. A
   player alone in a biome always sees their own.
 - **A dungeon counts as the biome above it.** Interiors sit directly above their entrance and
   biome lookups compare only x and z, so a crypt is Swamp and a frost cave is Mountain without
@@ -113,7 +117,7 @@ The file is `BepInEx/config/ezomic.valheim.vandi.cfg`, written on first run.
 | --- | --- | --- |
 | `Enabled` | true | Off leaves the plugin loaded and changing nothing |
 | `Verbose` | false | Log every roll this changes and every kill it credits |
-| `StarChancePerKill` | 5 | Percentage points added per kill of that biome's boss |
+| `StarChancePerKill` | 5 | Percentage points added per kill of that biome's boss, on top of the game's own roll there |
 | `StarChanceCap` | 25 | The most that can be added, whatever the count |
 | `BossBiomes` | the eight pairings | `boss:biome`, comma separated, spelled the same as Utangard and Vaettir spell it |
 | `HarderBosses` | true | A summoned boss you have killed before arrives with stars |

@@ -44,21 +44,32 @@ namespace Vandi
                 + "BepInEx/LogOutput.log. Off unless something looks wrong; a busy zone "
                 + "rolls this many times a second.");
 
-            // Percentage points on vanilla's ten, not a multiplier. A multiplier would make
-            // the first kill worth almost nothing and the fifth worth a great deal, and the
-            // thing being promised is "the biome you have beaten gets meaner", which is a
-            // flat progression a player can feel after one kill.
+            // Percentage points added to the game's own roll, not a multiplier. A multiplier
+            // would make the first kill worth almost nothing and the fifth worth a great deal,
+            // and the thing being promised is "the biome you have beaten gets meaner", which is
+            // a flat progression a player can feel after one kill.
+            //
+            // Flat against the land as well. In 1.0 the game's roll is already multiplied by the
+            // world's star setting and by the biome sector, and one Meadows stretch four
+            // kilometres out doubles it, so vanilla there is 20 and not 10. Scaling these points
+            // the same way would make a kill worth ten there and five nearer the centre. Robbin
+            // kept them flat on 2026-09-28, so the text below promises points added and never a
+            // total, because the total depends on where the creature spawns.
             StarChancePerKill = cfg.Bind("Stars", "StarChancePerKill", 5f,
                 "Percentage points added to a creature's star chance for each time you have "
-                + "killed that biome's boss. Vanilla is 10, so one kill makes it 15. It is "
-                + "the chance of gaining a star that moves, never the number a creature can "
-                + "have: two stars stays the ceiling.");
+                + "killed that biome's boss. They go on top of whatever the game already rolls "
+                + "where the creature spawns: 10 in an ordinary stretch of a default world, "
+                + "higher in parts of the world far from the centre, lower on a world set to "
+                + "fewer stars. It is the chance of gaining a star that moves, never the number "
+                + "a creature can have, so two stars stays the ceiling.");
 
             StarChanceCap = cfg.Bind("Stars", "StarChanceCap", 25f,
                 "The most that can be added, however many times you kill the boss. At the "
-                + "default five a kill this is reached at five kills and a fully farmed "
-                + "biome sits at 35 percent. Past that the biome stops being a place you "
-                + "visit and becomes a place you avoid, which is the opposite of the point.");
+                + "default five a kill this is reached at five kills, and a fully farmed biome "
+                + "then sits 25 points above the game's own roll there: 35 where the game rolls "
+                + "10, more where the land already raises it. Past that the biome stops being a "
+                + "place you visit and becomes a place you avoid, which is the opposite of the "
+                + "point.");
 
             // Boss keys rather than prefab names, because the defeat key is what the game
             // itself writes when the boss dies and what every other mod here already reads.

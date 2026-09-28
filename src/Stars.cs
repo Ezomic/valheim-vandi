@@ -30,11 +30,25 @@ namespace Vandi
     {
         /// <summary>
         /// Adds the earned points to whatever the game has already worked out, after all of its
-        /// own factors. One of those is new in 1.0 and not small: a biome sector can carry an
-        /// alt-biome modifier that multiplies the roll. The Meadows stretch where this was found,
-        /// four kilometres out, doubles it, so vanilla there is 20 rather than 10 and one kill
-        /// makes it 25, not 15 or 30. Found on 2026-09-28, when the stars scenario ran there and
-        /// every reading came out ten high.
+        /// own factors, and scales them by none of those factors. The game's roll is 10, or a
+        /// spawner's own override, times <c>Game.m_enemyLevelUpRate</c> (the world setting, below
+        /// 1 on a world set to fewer stars) times the biome sector's
+        /// <c>GetLevelUpChanceMultiplier</c>. On a world with a world level set the rate is
+        /// dropped and the base is raised to a power instead, capped at 70 before the sector
+        /// multiplier, and the points go on top of that just the same.
+        ///
+        /// The sector multiplier is new in 1.0 and not small. A sector can carry alt-biome
+        /// modifiers that multiply the roll, and a modifier can require a minimum distance from
+        /// the world centre, so the roll runs higher in parts of the world far from it. The
+        /// Meadows stretch where this was found, four kilometres out, doubles it, so vanilla
+        /// there is 20 rather than 10 and one kill makes it 25, not 15 or 30. Found on
+        /// 2026-09-28, when the stars scenario ran there and every reading came out ten high.
+        ///
+        /// 25 and not 30 is Robbin's call of the same day: the points stay flat on top of the
+        /// land rather than growing with it, so a kill is worth five points wherever the
+        /// creature spawns. That is why nothing Vandi says to a player, in the cfg or the
+        /// README, promises a total. The total is the game's number plus this one, and only the
+        /// second is Vandi's.
         /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(nameof(SpawnSystem.GetLevelUpChance), new[] { typeof(Vector3), typeof(float) })]

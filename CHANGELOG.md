@@ -8,9 +8,11 @@ design went public for opinions first and it can still change on the strength of
 ### Planned
 
 - **Starred creatures get likelier in a biome whose boss you have killed.** Five percentage
-  points a kill on vanilla's ten, capped at twenty five extra, so a biome whose boss you have
-  killed five times spawns starred creatures a third of the time. The cap on stars themselves
-  does not move.
+  points a kill, capped at twenty five extra, added to whatever the game already rolls there.
+  That is ten in an ordinary stretch of a default world, so there a biome whose boss you have
+  killed five times spawns starred creatures about a third of the time. The game rolls higher in
+  parts of the world far from the centre and lower on a world set to fewer stars, and the points
+  go on top either way. The cap on stars themselves does not move.
 - **A boss you have killed before comes back harder.** One star stronger per repeat kill by the
   same player, capped at two.
 - **All of it is per player.** Your own kills decide what you meet, so two people standing in
