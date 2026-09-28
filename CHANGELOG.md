@@ -28,4 +28,5 @@ design went public for opinions first and it can still change on the strength of
 ### Console
 
 - `vandi` prints the boss kills this world has credited to you, one line per boss Vandi
-  counts. It only reads, so it is not a cheat and needs no devcommands.
+  counts, and the star chance where you stand with Vandi's share of it. It only reads, so it
+  is not a cheat and needs no devcommands.

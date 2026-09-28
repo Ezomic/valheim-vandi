@@ -28,13 +28,19 @@ namespace Vandi
     [HarmonyPatch(typeof(SpawnSystem))]
     internal static class Stars
     {
+        /// <summary>
+        /// Adds the earned points to whatever the game has already worked out, after all of its
+        /// own factors. One of those is new in 1.0 and not small: a biome sector can carry an
+        /// alt-biome modifier that multiplies the roll. The Meadows stretch where this was found,
+        /// four kilometres out, doubles it, so vanilla there is 20 rather than 10 and one kill
+        /// makes it 25, not 15 or 30. Found on 2026-09-28, when the stars scenario ran there and
+        /// every reading came out ten high.
+        /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(nameof(SpawnSystem.GetLevelUpChance), new[] { typeof(Vector3), typeof(float) })]
         private static void Raise(Vector3 position, ref float __result)
         {
-            if (!VandiConfig.Enabled.Value) return;
-
-            float extra = Boost(position);
+            float extra = Share(position);
             if (extra <= 0f) return;
 
             float was = __result;
@@ -45,6 +51,18 @@ namespace Vandi
                 VandiPlugin.Log.LogInfo("Star chance at " + position + ": " + was.ToString("0.#")
                     + " + " + extra.ToString("0.#") + " = " + __result.ToString("0.#") + ".");
             }
+        }
+
+        /// <summary>
+        /// What Raise adds at this position, and nothing else: zero while the mod is off.
+        ///
+        /// Its own method so the `vandi` readout can say how much of the game's number is
+        /// Vandi's by asking the very code that adds it. A readout that worked the share out
+        /// again for itself could disagree with the patch and still look right.
+        /// </summary>
+        internal static float Share(Vector3 position)
+        {
+            return VandiConfig.Enabled.Value ? Boost(position) : 0f;
         }
 
         /// <summary>

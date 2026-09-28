@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Vandi
 {
@@ -85,7 +86,7 @@ namespace Vandi
 
         /// <summary>
         /// `vandi` in the console: the boss kills this world has credited to you, one line per boss
-        /// Vandi counts.
+        /// Vandi counts, then the star roll where you stand and how much of it is Vandi's.
         ///
         /// Written for paired-kill-credit-killer.txt in Utangard's scenarios (LHM-36), which has to
         /// say the killer's record went up by exactly the kills it made and not by one more. The
@@ -93,8 +94,8 @@ namespace Vandi
         /// a character that has played the world already has some number there. So the only honest
         /// check is before and after, and that needs the number printed.
         ///
-        /// isCheat false: it reads the world's keys, which every client already holds, and changes
-        /// nothing.
+        /// isCheat false: it reads the world's keys, which every client already holds, and the
+        /// star roll every spawn already asks for, and changes nothing.
         /// </summary>
         [HarmonyPatch]
         internal static class Readout
@@ -121,7 +122,7 @@ namespace Vandi
                 _registered = true;
 
                 new Terminal.ConsoleCommand("vandi",
-                    "the boss kills this world has credited to you, per boss Vandi counts",
+                    "the boss kills this world has credited to you, per boss Vandi counts, and the star roll where you stand",
                     new Terminal.ConsoleEvent(OnCommand), isCheat: false);
             }
 
@@ -160,6 +161,45 @@ namespace Vandi
                             + Count(id, key).ToString(CultureInfo.InvariantCulture));
                     }
                 }
+
+                // Last, so the kill lines Utangard's scenario reads keep the place they had.
+                term.AddString(StarLine(player));
+            }
+
+            /// <summary>
+            /// The star roll where you stand, and how much of it is Vandi's.
+            ///
+            /// Written for vandi-stars-per-biome on 2026-09-28, for the same reason as the kill
+            /// lines. That scenario stated the roll outright, 10 with no kills and 15 with one,
+            /// which holds only where the ground does not multiply it, and in 1.0 an alt-biome
+            /// sector can. Robbin's suite run left him four kilometres out in a Meadows stretch
+            /// that doubles the roll, and every reading came out ten high while the mod added
+            /// exactly what it should. So the scenario reads this line first and checks how it
+            /// moves.
+            ///
+            /// The total is SpawnSystem.GetLevelUpChance itself, with this mod's postfix on it, so
+            /// it is the number a spawn here would roll against. Vandi's part is Stars.Share, the
+            /// method the postfix adds, and the sector factor is printed because it is the part
+            /// of "the game's" number nobody expects.
+            /// </summary>
+            private static string StarLine(Player player)
+            {
+                WorldGenerator world = WorldGenerator.instance;
+                if (world == null) return "vandi starchance: no world generator yet";
+
+                Vector3 here = player.transform.position;
+                float total = SpawnSystem.GetLevelUpChance(here);
+                float share = Stars.Share(here);
+                float sector = world.GetBiomeSector(here).GetLevelUpChanceMultiplier();
+
+                return "vandi starchance=" + Number(total) + " here (" + world.GetBiome(here)
+                    + ", sector x" + Number(sector) + "): the game's " + Number(total - share)
+                    + ", Vandi's +" + Number(share);
+            }
+
+            private static string Number(float value)
+            {
+                return value.ToString("0.##", CultureInfo.InvariantCulture);
             }
         }
     }

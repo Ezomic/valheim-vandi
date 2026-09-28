@@ -5,47 +5,80 @@
 # comes from rather than spawning creatures and counting stars, because counting stars is a
 # test of the random number generator.
 #
-# Run it in the Meadows. The numbers below are vanilla 10 plus the configured 5 a kill, so if
-# StarChancePerKill or StarChanceCap have been edited in this profile the expected values move
-# with them and this file is wrong rather than the mod.
+# It measures where it stands before it states anything. The first version said the roll
+# outright, 10 with no kills and 15 with one, and passed on 2026-09-24 wherever it stood then.
+# On 2026-09-28 Robbin's suite run left him four kilometres out, at (2388, 43, 3156), in a
+# Meadows stretch whose 1.0 alt-biome modifier doubles the roll, and every reading came out ten
+# high: 20, 25, 35, 45, 45, 20. The mod had added exactly 0, 5, 15, 25, 25 and 0, which is what
+# it promises. So the file reads the roll first through `vandi` in the console, which prints
+# SpawnSystem.GetLevelUpChance where you stand, and checks how it moves; Devkit's own
+# `starchance` then reads the same function independently and has to agree.
+#
+# The steps below are the configured 5 a kill and a cap of 25, so if StarChancePerKill or
+# StarChanceCap have been edited in this profile the expected moves change with them and this
+# file is wrong rather than the mod.
 
 clear
 god
 ghost
 
+# The Meadows, because the record this file writes is the Meadows boss's. The nearest Meadows
+# rather than a promise in this header that you are standing in one: a suite run starts
+# wherever the scenario before it left you.
+biome Meadows
+wait 3
+
 # A clean record for this character: these are the keys the mod keeps its counts in, and the
 # scenario owns them for the length of the run.
 unkey vandi_p_$player_defeated_eikthyr
+unkey vandi_p_$player_defeated_gdking
 wait 1
 
-# Nothing killed, nothing added. Vanilla is 10, and the tolerance is there because the game
-# multiplies by a biome sector that is not exactly 1 everywhere.
-starchance 10 1
+# Nothing killed, nothing added. Whatever the game rolls here is the baseline, kept twice: as
+# chance, which each later reading replaces, and as base, which the last step comes back to.
+console vandi
+note chance vandi starchance=([0-9.]+)
+note base vandi starchance=([0-9.]+)
+printed Vandi's +0 yes
+starchance $chance 0.01
 
-# One kill of the Meadows boss, and the Meadows gets meaner.
+# One kill of the Meadows boss, and the Meadows gets meaner by five points.
 key vandi_p_$player_defeated_eikthyr 1
 wait 1
-starchance 15 1
+console vandi
+went chance vandi starchance=([0-9.]+) +5
+starchance $chance 0.01
 
+# Three kills is ten more on top of that.
 key vandi_p_$player_defeated_eikthyr 3
 wait 1
-starchance 25 1
+console vandi
+went chance vandi starchance=([0-9.]+) +10
+starchance $chance 0.01
 
-# Five kills is the cap at the default five points a kill, and a sixth changes nothing. A mod
+# Five kills is the cap at the default five points a kill, and a ninth changes nothing. A mod
 # that let this keep climbing would end with a biome nobody walks through.
 key vandi_p_$player_defeated_eikthyr 5
 wait 1
-starchance 35 1
+console vandi
+went chance vandi starchance=([0-9.]+) +10
+printed Vandi's +25 yes
+starchance $chance 0.01
 
 key vandi_p_$player_defeated_eikthyr 9
 wait 1
-starchance 35 1
+console vandi
+went chance vandi starchance=([0-9.]+) same
+starchance $chance 0.01
 
 # Somebody else's boss does nothing here. This is the whole promise of the mod: the biome you
 # have beaten is the one that changes, and the Black Forest's boss has no say in the Meadows.
+# So five Elder kills leave the roll exactly where it was with nothing killed at all.
 unkey vandi_p_$player_defeated_eikthyr
 key vandi_p_$player_defeated_gdking 5
 wait 1
-starchance 10 1
+starchance $base 0.01
+console vandi
+printed Vandi's +0 yes
 
 unkey vandi_p_$player_defeated_gdking
