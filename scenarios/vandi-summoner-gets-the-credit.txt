@@ -34,13 +34,26 @@ wait 1
 # Devkit's `location` step now lists the names it does know when that happens.
 location Eikthyrnir
 wait 3
+
+# No Eikthyr but the ones this run summons. A run that stops halfway leaves its boss standing
+# for the rest of the session, stamped and starred, and `level` and `kill` take the nearest
+# Eikthyr they find: the run on 2026-09-28 left a one star Eikthyr beside its altar, and a
+# second run in that session and that spot would have measured it instead of its own.
+banish Eikthyr 80
 give TrophyDeer:2
 wait 1
 
-# The offering. Five seconds is the altar's own spawn delay; the wait is longer to leave room
-# for the effects and for the stamp to be written by whoever owns the altar.
+# The offering, and twenty seconds for the boss. The first run on 2026-09-28 waited nine, on the
+# strength of m_spawnBossDelay's 5 in code, and that is not what this altar carries. Nothing was
+# there at nine seconds; the boss from that offering was the one the second `level` then found,
+# still plain, and when it was killed the kill was credited as it should be. The second
+# offering's boss arrived only after that kill had been recorded, and Vandi's log shows it
+# coming at one star for one kill. So the altar's delay is more than nine seconds plus a death
+# animation, and at most the thirteen seconds between the two offerings, because the altar
+# ignores an offering while its last boss is still on the way and this one did summon. Utangard's
+# altar scenario saw the same that day: no Eikthyr within 80 m eight seconds after an offering.
 offer TrophyDeer
-wait 9
+wait 20
 
 # Never killed him, so he is exactly the boss the game makes.
 level Eikthyr 1
@@ -57,7 +70,7 @@ keyis vandi_p_$player_defeated_eikthyr 1
 give TrophyDeer:2
 wait 1
 offer TrophyDeer
-wait 9
+wait 20
 level Eikthyr 2
 
 kill Eikthyr

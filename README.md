@@ -3,8 +3,9 @@
 Creatures wear more stars in a biome whose boss you keep killing, and that boss comes back
 harder the next time you summon it. All of it follows your own kills, not the server's.
 
-**Written, never run.** The code is here and it compiles. Nothing has been played, and the two
-scenarios in `scenarios/` have not been replayed in a world yet. The design is on the site,
+**Written, never played.** The code is here and it compiles. Nothing has been played; the two
+scenarios in `scenarios/` have been run in a world, and Testing below says how that went. The
+design is on the site,
 where players were asked about it before any of this existed:
 [Stars worth earning, and bosses that remember you](https://longhouse.thijssensoftware.nl/devlog/stars-worth-earning).
 
@@ -123,16 +124,24 @@ and not each player's.
 
 ## Testing
 
-`scenarios/` holds two Devkit scenarios. `vandi-stars-per-biome` seeds a record and states what
-the star roll should be at each step, including that a boss from another biome changes nothing.
+`scenarios/` holds two Devkit scenarios. `vandi-stars-per-biome` goes to the nearest Meadows,
+reads the star roll there, seeds a record and checks how the roll moves at each step, including
+that a boss from another biome changes nothing. It measures first because the roll is not 10
+everywhere: in 1.0 a biome sector can carry a modifier that multiplies it, and one Meadows
+stretch four kilometres out in the dev world doubles it. `vandi` in the console prints the roll where you stand and how
+much of it is Vandi's, which is what the scenario reads.
 `vandi-summoner-gets-the-credit` brings its own Eikthyr altar through `location`, so it needs
 only a little open ground ahead of you, most simply in the Meadows. It drives the real summoning
 path, because the boss half is only real through an altar.
 
-`vandi-stars-per-biome` passed on 2026-09-24. `vandi-summoner-gets-the-credit` has not passed
-yet: its only run failed at the altar, before it brought its own. Two things they do not
-cover: what a second player sees while standing in somebody else's zone, and the rule that
-helping with a friend's boss earns nothing, which needs two clients.
+`vandi-stars-per-biome` passed on 2026-09-24, and on 2026-09-28 failed
+in that doubled stretch with every reading ten high while the mod added exactly what it should;
+it now reads where it stands first. `vandi-summoner-gets-the-credit` first got past the altar on
+2026-09-28. Its log shows both halves working, the kill credited to the summoner and the next
+boss arriving at one star, and it failed only because it looked for each boss nine seconds after
+the offering, which is sooner than this altar sends one. Neither has passed in its current form
+yet. Two things they do not cover: what a second player sees while standing in somebody else's
+zone, and the rule that helping with a friend's boss earns nothing, which needs two clients.
 
 ## Bugs and ideas
 
