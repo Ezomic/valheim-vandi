@@ -11,8 +11,12 @@
 # Meadows stretch whose 1.0 alt-biome modifier doubles the roll, and every reading came out ten
 # high: 20, 25, 35, 45, 45, 20. The mod had added exactly 0, 5, 15, 25, 25 and 0, which is what
 # it promises. So the file reads the roll first through `vandi` in the console, which prints
-# SpawnSystem.GetLevelUpChance where you stand, and checks how it moves; Devkit's own
-# `starchance` then reads the same function independently and has to agree.
+# SpawnSystem.GetLevelUpChance where you stand, and checks how it moves. Then Devkit's
+# `starchance +n` checks Vandi's points without asking Vandi: it works out the roll the game
+# alone would make here, from the game's own formula and this spot's sector multiplier, and
+# wants the real roll to be exactly n above it. Reading the roll back through `starchance $chance`
+# instead, as this file first did, asked the same function at the same spot twice and could not
+# fail.
 #
 # The steps below are the configured 5 a kill and a cap of 25, so if StarChancePerKill or
 # StarChanceCap have been edited in this profile the expected moves change with them and this
@@ -40,21 +44,21 @@ console vandi
 note chance vandi starchance=([0-9.]+)
 note base vandi starchance=([0-9.]+)
 printed Vandi's +0 yes
-starchance $chance 0.01
+starchance +0 0.01
 
 # One kill of the Meadows boss, and the Meadows gets meaner by five points.
 key vandi_p_$player_defeated_eikthyr 1
 wait 1
 console vandi
 went chance vandi starchance=([0-9.]+) +5
-starchance $chance 0.01
+starchance +5 0.01
 
 # Three kills is ten more on top of that.
 key vandi_p_$player_defeated_eikthyr 3
 wait 1
 console vandi
 went chance vandi starchance=([0-9.]+) +10
-starchance $chance 0.01
+starchance +15 0.01
 
 # Five kills is the cap at the default five points a kill, and a ninth changes nothing. A mod
 # that let this keep climbing would end with a biome nobody walks through.
@@ -63,13 +67,13 @@ wait 1
 console vandi
 went chance vandi starchance=([0-9.]+) +10
 printed Vandi's +25 yes
-starchance $chance 0.01
+starchance +25 0.01
 
 key vandi_p_$player_defeated_eikthyr 9
 wait 1
 console vandi
 went chance vandi starchance=([0-9.]+) same
-starchance $chance 0.01
+starchance +25 0.01
 
 # Somebody else's boss does nothing here. This is the whole promise of the mod: the biome you
 # have beaten is the one that changes, and the Black Forest's boss has no say in the Meadows.
@@ -78,6 +82,7 @@ unkey vandi_p_$player_defeated_eikthyr
 key vandi_p_$player_defeated_gdking 5
 wait 1
 starchance $base 0.01
+starchance +0 0.01
 console vandi
 printed Vandi's +0 yes
 
