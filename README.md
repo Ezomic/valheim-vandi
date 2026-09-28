@@ -125,12 +125,14 @@ and not each player's.
 
 `scenarios/` holds two Devkit scenarios. `vandi-stars-per-biome` seeds a record and states what
 the star roll should be at each step, including that a boss from another biome changes nothing.
-`vandi-summoner-gets-the-credit` needs you standing at Eikthyr's altar and drives the real
-summoning path, because the boss half is only real through an altar.
+`vandi-summoner-gets-the-credit` brings its own Eikthyr altar through `location`, so it needs
+only a little open ground ahead of you, most simply in the Meadows. It drives the real summoning
+path, because the boss half is only real through an altar.
 
-Neither has been run. Two things they do not cover: what a second player sees while standing in
-somebody else's zone, and the rule that helping with a friend's boss earns nothing, which needs
-two clients.
+`vandi-stars-per-biome` passed on 2026-09-24. `vandi-summoner-gets-the-credit` has not passed
+yet: its only run failed at the altar, before it brought its own. Two things they do not
+cover: what a second player sees while standing in somebody else's zone, and the rule that
+helping with a friend's boss earns nothing, which needs two clients.
 
 ## Bugs and ideas
 

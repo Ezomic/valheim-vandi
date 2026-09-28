@@ -19,11 +19,6 @@ design went public for opinions first and it can still change on the strength of
   the boss falls. Helping with somebody else's boss earns nothing, which is what keeps the
   record personal.
 
-### Fixed
-
-- **Killing a boss you summoned now goes on your record.** The mod checked which machine owned
-  the boss only after the game had already let go of it, so no machine counted the kill.
-
 ### For other mods
 
 - **Other mods can read your kill count.** `VandiApi` answers how many times a player has
