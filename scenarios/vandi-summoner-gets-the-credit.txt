@@ -14,6 +14,10 @@
 # run on 2026-09-24, and could never have passed: both steps search building pieces, an altar is
 # part of a location and not a piece, and pressing E on this kind of altar does nothing anyway.
 #
+# The first `keyis` below is also the step that catches the bug fixed on 2026-09-28. Until then
+# the kill was checked for ownership after OnDeath had already let go of the boss's ZDO, so no
+# machine counted it, and that step would have read "not set at all" even with the altar working.
+#
 # What it proves, in order: a boss summoned with nothing on the record arrives plain, the kill
 # is credited to the summoner, and the next one arrives with a star because of it.
 

@@ -24,8 +24,10 @@ namespace Vandi
     ///   of that player's record, and stamps the id on the boss's own ZDO so the answer
     ///   travels with the creature rather than with the world.
     /// - <b>The death.</b> The owning client reads the stamp and records the kill for whoever
-    ///   is named on it. Only the owner: a boss with a death animation reaches OnDeath on
-    ///   every client animating it, so the postfix checks IsOwner itself (see Died).
+    ///   is named on it. Only the owner, because a boss with a death animation reaches OnDeath
+    ///   on every client animating it. Ownership and the stamp are read in a prefix (Dying),
+    ///   since by the time a postfix runs the owner's view has already let go of the ZDO, and
+    ///   the kill is recorded in the postfix (Died) from what the prefix saw.
     ///
     /// The global key is a handover between two machines a few seconds apart, not a record.
     /// Two people summoning the same boss type in the same five seconds would hand the second
@@ -118,33 +120,79 @@ namespace Vandi
                 + summoner + ", who has killed it " + kills + " time(s).");
         }
 
-        [HarmonyPatch(typeof(Character), "OnDeath")]
-        [HarmonyPostfix]
-        private static void Died(Character __instance)
+        /// <summary>What Dying saw on the boss, handed to Died through Harmony's __state.</summary>
+        private struct Death
         {
+            /// <summary>This machine owned the boss when OnDeath began, so it records the kill.</summary>
+            internal bool Owner;
+
+            internal string Boss;
+
+            internal long Summoner;
+        }
+
+        /// <summary>
+        /// The half of the kill credit that has to run before vanilla's OnDeath: whether this
+        /// machine owns the boss, and whose stamp is on it.
+        ///
+        /// Both answers live on the boss's ZDO, and on the owner that ZDO is gone before any
+        /// postfix runs. OnDeath's last line is ZNetScene.Destroy, which calls ResetZDO on the
+        /// view first thing, so a postfix finds IsValid false, IsOwner false (it asks IsValid
+        /// before anything else) and GetZDO null. On every other client animating the boss,
+        /// OnDeath leaves at its own IsOwner return before it reaches Destroy, so there the view
+        /// is still whole and IsOwner is false. Died used to ask both questions itself, and
+        /// they failed on every machine: the owner at IsValid and everyone else at IsOwner.
+        /// Before IsOwner was added on 2026-09-27 it asked IsValid alone, which the owner failed
+        /// just the same, so a kill counted only on the other clients watching the death
+        /// animation, once per client, and never in singleplayer. Found on 2026-09-28; no log
+        /// shows a real kill recorded before then. So the questions are asked here, while the
+        /// view is still whole, and the answers travel to Died.
+        /// </summary>
+        [HarmonyPatch(typeof(Character), "OnDeath")]
+        [HarmonyPrefix]
+        private static void Dying(Character __instance, out Death __state)
+        {
+            __state = default(Death);
+
             if (!VandiConfig.Enabled.Value || __instance == null) return;
 
             string boss = Bosses.KeyOf(__instance);
 
             // Not "has a defeat key": a bat has one of those. Only a key the config maps to a
             // biome is a boss as far as this mod is concerned, which also keeps the verbose
-            // line below from saying something about every bat in a frost cave.
+            // line in Died from saying something about every bat in a frost cave.
             if (!Bosses.IsBossKey(boss)) return;
 
+            // The owner only, and the same test vanilla makes a few lines into OnDeath, so
+            // this answers yes on exactly the machine where OnDeath will run to its end. A
+            // creature with m_deathAnimation does not die through CheckDeath's direct call:
+            // its death animation fires CharacterAnimEvent.Die, which calls OnDeath on EVERY
+            // client animating it. Without this, each player standing at the altar would read
+            // the same stamp and add a kill, so one boss could count two or three times. Found
+            // on 2026-09-27 while building Utangard's kill tally.
             ZNetView nview = __instance.GetComponent<ZNetView>();
-            if (nview == null || !nview.IsValid()) return;
+            if (nview == null || !nview.IsValid() || !nview.IsOwner()) return;
 
-            // The owner only, and this line is load-bearing in 1.0. A creature with
-            // m_deathAnimation does not die through CheckDeath's direct call: its death
-            // animation fires CharacterAnimEvent.Die, which calls OnDeath on EVERY client
-            // animating it, and non-owners leave through OnDeath's own IsOwner return - which
-            // a postfix runs after anyway. Without this, each player standing at the altar
-            // read the same stamp and added a kill, so one boss could count two or three
-            // times. Found on 2026-09-27 while building Utangard's kill tally; the comment
-            // above, and CLAUDE.md, had called that IsOwner return dead code.
-            if (!nview.IsOwner()) return;
+            __state.Owner = true;
+            __state.Boss = boss;
+            __state.Summoner = nview.GetZDO().GetLong(SummonerKey, 0L);
+        }
 
-            long summoner = nview.GetZDO().GetLong(SummonerKey, 0L);
+        /// <summary>
+        /// Records the kill, from what Dying read before the ZDO was let go. It stays a postfix
+        /// so a kill is written only once vanilla's OnDeath has run to its end, and it touches
+        /// neither the view nor the ZDO, which are gone by now on the one machine that gets
+        /// this far. A postfix runs even when another mod's prefix skipped OnDeath, which is a
+        /// boss that did not die, so __runOriginal is checked as Offered checks it.
+        /// </summary>
+        [HarmonyPatch(typeof(Character), "OnDeath")]
+        [HarmonyPostfix]
+        private static void Died(bool __runOriginal, Death __state)
+        {
+            if (!__runOriginal || !__state.Owner) return;
+
+            string boss = __state.Boss;
+            long summoner = __state.Summoner;
             if (summoner == 0L)
             {
                 // A boss nobody summoned through an altar this session: the world's own
