@@ -39,10 +39,24 @@ namespace Vandi
         ///
         /// The sector multiplier is new in 1.0 and not small. A sector can carry alt-biome
         /// modifiers that multiply the roll, and a modifier can require a minimum distance from
-        /// the world centre, so the roll runs higher in parts of the world far from it. The
-        /// Meadows stretch where this was found, four kilometres out, doubles it, so vanilla
-        /// there is 20 rather than 10 and one kill makes it 25, not 15 or 30. Found on
-        /// 2026-09-28, when the stars scenario ran there and every reading came out ten high.
+        /// the world centre (<c>AltBiome.m_minDistanceFromCenter</c>, 1000 in code, though the
+        /// shipped values are asset data), so the roll runs higher in parts of the world far
+        /// from it. Found on 2026-09-28, when the stars scenario ran in a Meadows stretch four
+        /// kilometres out and every reading came out ten high: the game's own roll there was
+        /// 20, and one kill made it 25, not 15 or 30.
+        ///
+        /// That run printed only the total, so the factor of two is worked out, not read. The
+        /// world was made new that day and its saved metadata lists no world modifiers, which
+        /// leaves the world setting at 1 and the world level at 0, and no other mod here touches
+        /// this roll. What remains is the sector. The `vandi` readout and Devkit's starchance
+        /// note both print the sector factor on its own, so the next run reads it directly, and
+        /// if it says x1 the doubling came from somewhere this note has missed.
+        ///
+        /// One gate sits outside this method altogether. <c>SpawnSystem.Spawn</c> asks for the
+        /// roll only when the spawn entry's <c>m_levelUpMinCenterDistance</c> is 0 or the spawn
+        /// point lies beyond it. An entry that carries that distance spawns with no star roll
+        /// inside it: no stars, and none of Vandi's points either, because this postfix is never
+        /// called. Which vanilla entries set it is asset data and has not been read.
         ///
         /// 25 and not 30 is Robbin's call of the same day: the points stay flat on top of the
         /// land rather than growing with it, so a kill is worth five points wherever the

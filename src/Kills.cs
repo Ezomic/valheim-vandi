@@ -173,9 +173,9 @@ namespace Vandi
             /// lines. That scenario stated the roll outright, 10 with no kills and 15 with one,
             /// which holds only where the ground does not multiply it, and in 1.0 an alt-biome
             /// sector can. Robbin's suite run left him four kilometres out in a Meadows stretch
-            /// that doubles the roll, and every reading came out ten high while the mod added
-            /// exactly what it should. So the scenario reads this line first and checks how it
-            /// moves.
+            /// where the game's own roll was 20, and every reading came out ten high while the mod
+            /// added exactly what it should. So the scenario reads this line first and checks how
+            /// it moves.
             ///
             /// The total is SpawnSystem.GetLevelUpChance itself, with this mod's postfix on it, so
             /// it is the number a spawn here would roll against. Vandi's part is Stars.Share, the

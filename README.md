@@ -97,9 +97,11 @@ opens only once you have beaten that biome's boss at one star, which is your sec
 - **The star chance** is one postfix on `SpawnSystem.GetLevelUpChance`, which is the single
   roll behind open-world spawns and every placed spawner, so camps and crypts are covered
   without naming them. Vandi's points are added after the game's own factors, the world's star
-  setting and the land's multiplier, and are not scaled by either. It runs on whichever client
-  owns the zone, and asks that client's own player. Two people standing in the same forest therefore see one answer, the owner's. A
-  player alone in a biome always sees their own.
+  setting and the land's multiplier, and are not scaled by either. A spawn entry can also skip
+  the star roll altogether near the world centre (its `m_levelUpMinCenterDistance`), and where
+  it does Vandi adds nothing, because the method is never called. It runs on whichever client
+  owns the zone, and asks that client's own player. Two people standing in the same forest
+  therefore see one answer, the owner's. A player alone in a biome always sees their own.
 - **A dungeon counts as the biome above it.** Interiors sit directly above their entrance and
   biome lookups compare only x and z, so a crypt is Swamp and a frost cave is Mountain without
   this mod knowing what a dungeon is.
@@ -131,9 +133,10 @@ and not each player's.
 `scenarios/` holds two Devkit scenarios. `vandi-stars-per-biome` goes to the nearest Meadows,
 reads the star roll there, seeds a record and checks how the roll moves at each step, including
 that a boss from another biome changes nothing. It measures first because the roll is not 10
-everywhere: in 1.0 a biome sector can carry a modifier that multiplies it, and one Meadows
-stretch four kilometres out in the dev world doubles it. `vandi` in the console prints the roll where you stand and how
-much of it is Vandi's, which is what the scenario reads.
+everywhere: in 1.0 a biome sector can carry a modifier that multiplies it, and in one Meadows
+stretch four kilometres out in the dev world the game rolled 20, on a world with no star setting
+changed. `vandi` in the console prints the roll where you stand and how much of it is Vandi's,
+which is what the scenario reads.
 `vandi-summoner-gets-the-credit` brings its own Eikthyr altar through `location`, so it needs
 only a little open ground ahead of you, most simply in the Meadows. It drives the real summoning
 path, because the boss half is only real through an altar.

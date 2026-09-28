@@ -50,9 +50,11 @@ namespace Vandi
             // a flat progression a player can feel after one kill.
             //
             // Flat against the land as well. In 1.0 the game's roll is already multiplied by the
-            // world's star setting and by the biome sector, and one Meadows stretch four
-            // kilometres out doubles it, so vanilla there is 20 and not 10. Scaling these points
-            // the same way would make a kill worth ten there and five nearer the centre. Robbin
+            // world's star setting and by the biome sector. In one Meadows stretch four
+            // kilometres out the game rolled 20, not 10, on a world with no star setting changed,
+            // which leaves the sector doubling it (Stars.Raise has how that was worked out).
+            // Scaling these points the same way would make a kill worth ten there and five
+            // nearer the centre. Robbin
             // kept them flat on 2026-09-28, so the text below promises points added and never a
             // total, because the total depends on where the creature spawns.
             StarChancePerKill = cfg.Bind("Stars", "StarChancePerKill", 5f,
