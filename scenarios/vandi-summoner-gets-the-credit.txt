@@ -1,8 +1,10 @@
 # Vandi - the altar, the stars, and who the kill belongs to.
 #
 # It brings its own altar. `location Eikthyrnir` spawns a real Eikthyr altar in front of you
-# through the game's own test-spawn call, and it is gone on the next load, so stand anywhere
-# with a little open ground ahead - the Meadows is simplest.
+# through the game's own test-spawn call, and it is gone on the next load. Devkit's stage before
+# the first step clears and levels 34 metres round you, which gives it the open ground it needs
+# ahead, level with your feet, and your feet are the height the altar is spawned at. The Meadows
+# is still the simplest place to start.
 #
 # Everything here needs the real summoning path, because that is what the mod hooks: the
 # offering says who made it, the altar's owner reads that when the boss appears, and the kill is
