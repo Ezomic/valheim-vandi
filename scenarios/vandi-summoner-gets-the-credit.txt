@@ -1,10 +1,18 @@
+#! nostage
 # Vandi - the altar, the stars, and who the kill belongs to.
 #
 # It brings its own altar. `location Eikthyrnir` spawns a real Eikthyr altar in front of you
-# through the game's own test-spawn call, and it is gone on the next load. Devkit's stage before
-# the first step clears and levels 34 metres round you, which gives it the open ground it needs
-# ahead, level with your feet, and your feet are the height the altar is spawned at. The Meadows
-# is still the simplest place to start.
+# through the game's own test-spawn call, and it is gone on the next load, so stand anywhere
+# with a little open ground ahead - the Meadows is simplest.
+#
+# NO STAGE. The `#! nostage` line at the top turns off the ground Devkit makes ready before the
+# first step, because the altar wants the world's own ground under it. A location levels its own
+# pad with the game's older terrain system, and the game applies that before the terrain compiler
+# a stage writes to, so on staged ground the stage's change is added on top of the pad: where the
+# stage raised the slope a metre, the pad comes out a metre above the altar's foot, and where it
+# lowered it, a metre below. On the world's own ground the pad is level with the altar. A suite
+# run that starts this file on ground the file before it staged has the same trouble, so run it
+# from somewhere nothing has levelled when the altar's ground matters.
 #
 # Everything here needs the real summoning path, because that is what the mod hooks: the
 # offering says who made it, the altar's owner reads that when the boss appears, and the kill is
