@@ -3,11 +3,9 @@
 Creatures wear more stars in a biome whose boss you keep killing, and that boss comes back
 harder the next time you summon it. All of it follows your own kills, not the server's.
 
-**Written, never played.** The code is here and it compiles. Nothing has been played; the two
-scenarios in `scenarios/` have been run in a world, and Testing below says how that went. The
-design is on the site,
-where players were asked about it before any of this existed:
+The design is on the site, where players were asked about it before any of this existed:
 [Stars worth earning, and bosses that remember you](https://longhouse.thijssensoftware.nl/devlog/stars-worth-earning).
+Testing below says what has been checked and what has not.
 
 Vandi is Old Norse for trouble.
 
@@ -75,10 +73,12 @@ reason is the credit rule above: the machine that records a kill is whichever cl
 boss when it died, and that is often not yours. The world is the one place both machines can
 reach.
 
-A count is written only when it changes, which is at most five times per boss per player,
-because the boost stops at five kills. That matters more than it looks: accepting one global
-key makes the server rebroadcast the whole key list to everybody connected, so a mod that
-wrote one every few seconds would be felt by people who do not have it installed.
+A count is written once per boss kill, and the count keeps climbing past the fifth kill even
+though the boost stops there, because it is a tally other mods read, not a star level. That
+matters more than it looks: accepting one global key makes the server rebroadcast the whole key
+list to everybody connected, so a mod that wrote one every few seconds would be felt by people
+who do not have it installed. One write when a boss is summoned and one when it dies is nowhere
+near that.
 
 ## For other mods
 
@@ -141,14 +141,12 @@ which is what the scenario reads.
 only a little open ground ahead of you, most simply in the Meadows. It drives the real summoning
 path, because the boss half is only real through an altar.
 
-`vandi-stars-per-biome` passed on 2026-09-24, and on 2026-09-28 failed
-in that doubled stretch with every reading ten high while the mod added exactly what it should;
-it now reads where it stands first. `vandi-summoner-gets-the-credit` first got past the altar on
-2026-09-28. Its log shows both halves working, the kill credited to the summoner and the next
-boss arriving at one star, and it failed only because it looked for each boss nine seconds after
-the offering, which is sooner than this altar sends one. Neither has passed in its current form
-yet. Two things they do not cover: what a second player sees while standing in somebody else's
-zone, and the rule that helping with a friend's boss earns nothing, which needs two clients.
+Both passed on 2026-09-28 and again on 2026-09-29, the second time at 43 and 25 steps. On
+2026-09-30 a two-player run on a dedicated server, one client summoning and killing and the
+other standing by, credited each boss kill once, to the player who made the offering. The one
+standing by gained nothing, although on that run its machine owned both bosses and wrote the
+credit. The scenarios for that run are Utangard's, since it checks three mods at once. What
+none of them covers is what a second player sees while standing in somebody else's zone.
 
 ## Bugs and ideas
 

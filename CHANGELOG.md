@@ -2,8 +2,8 @@
 
 ## 1.0.0 - 2026-09-30
 
-First release. Both Devkit scenarios in `scenarios/` pass, and a two-player run on a dedicated
-server credited each boss kill once, to the summoner.
+First release. Both Devkit scenarios in `scenarios/` passed on 2026-09-29, and a two-player
+run on a dedicated server credited each boss kill once, to the summoner.
 
 - **Starred creatures get likelier in a biome whose boss you have killed.** Five percentage
   points a kill, up to twenty five extra, added to whatever the game already rolls where the

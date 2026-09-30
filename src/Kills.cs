@@ -21,10 +21,12 @@ namespace Vandi
     /// NonServerOption, so none of this can reach m_startingGlobalKeys or disturb the world's
     /// own rates.
     ///
-    /// Written only on change, and the check is load-bearing rather than tidy: the server's
+    /// Written once per kill and at no other time, which is what keeps it cheap: the server's
     /// RPC_SetGlobalKey ends in SendGlobalKeys(Everybody), so accepting one key rebroadcasts
-    /// the world's whole key list to everybody connected. Capped at five kills' worth of
-    /// boost, a player's count moves at most five times per boss, ever.
+    /// the world's whole key list to everybody connected. The count is not capped at the five
+    /// kills the star boost stops at, because VandiApi hands it out as a tally, so a boss
+    /// killed for the twentieth time still costs one rebroadcast. An earlier version of this
+    /// comment and the README said it moved at most five times; no code ever enforced that.
     /// </summary>
     internal static class Kills
     {
