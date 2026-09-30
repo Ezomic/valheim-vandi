@@ -1,7 +1,7 @@
 {
     "name":  "Vandi",
     "author":  "Robbin Thijssen",
-    "version_number":  "0.1.0",
+    "version_number":  "1.0.0",
     "description":  "Creatures wear more stars in a biome whose boss you keep killing, and that boss comes back harder.",
     "dependencies":  [
                          "denikson-BepInExPack_Valheim-5.4.2350"
