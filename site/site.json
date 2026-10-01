@@ -1,4 +1,12 @@
 {
     "listed": true,
-    "short": "Creatures wear more stars in a biome whose boss you keep killing, and that boss comes back harder. Your kills, not the server's."
+    "short": "Creatures wear more stars in a biome whose boss you keep killing, and that boss comes back harder. Your kills, not the server's.",
+    "roadmap": [
+        {
+            "key": "compendium-page",
+            "title": "A compendium page for your own progress",
+            "status": "planned",
+            "body": "A page of its own in the compendium, grouped by biome, showing for each boss how many times you have killed it, how much extra star chance its biome carries now and at the next kill, and how many stars the boss will have the next time you summon it. A boss you have never beaten shows what the first kill would change.\n\nIt also shows what Malmr unlocks from your kills. Exact numbers, not words."
+        }
+    ]
 }
