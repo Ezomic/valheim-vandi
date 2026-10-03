@@ -117,9 +117,19 @@ namespace Vandi
                 if (kills > most) most = kills;
             }
 
-            if (most <= 0) return 0f;
+            return Earned(most);
+        }
 
-            float earned = most * VandiConfig.StarChancePerKill.Value;
+        /// <summary>
+        /// The points a count of kills is worth: the per-kill figure times the kills, held at the
+        /// cap. Its own method so the compendium page asks the very code the star roll asks, and
+        /// can never say a number the world does not use.
+        /// </summary>
+        internal static float Earned(int kills)
+        {
+            if (kills <= 0) return 0f;
+
+            float earned = kills * VandiConfig.StarChancePerKill.Value;
             float cap = VandiConfig.StarChanceCap.Value;
 
             return cap > 0f && earned > cap ? cap : earned;

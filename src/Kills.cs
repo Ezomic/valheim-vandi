@@ -102,14 +102,6 @@ namespace Vandi
         [HarmonyPatch]
         internal static class Readout
         {
-            /// <summary>Every biome BossBiomes could name, walked in progression order.</summary>
-            private static readonly Heightmap.Biome[] Biomes =
-            {
-                Heightmap.Biome.Meadows, Heightmap.Biome.BlackForest, Heightmap.Biome.Swamp,
-                Heightmap.Biome.Mountain, Heightmap.Biome.Plains, Heightmap.Biome.Mistlands,
-                Heightmap.Biome.AshLands, Heightmap.Biome.DeepNorth, Heightmap.Biome.Ocean,
-            };
-
             /// <summary>
             /// Process-wide: Terminal's command table is a private static nothing clears, so a
             /// second registration would be a duplicate that outlives the world.
@@ -156,7 +148,7 @@ namespace Vandi
                 // A boss may own two biomes, as Bonemass and Fader do by default, and is listed once.
                 HashSet<string> shown = new HashSet<string>();
 
-                foreach (Heightmap.Biome biome in Biomes)
+                foreach (Heightmap.Biome biome in Bosses.Order)
                 {
                     List<string> keys = Bosses.For(biome);
                     if (keys == null) continue;

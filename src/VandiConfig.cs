@@ -33,6 +33,8 @@ namespace Vandi
         internal static ConfigEntry<string> DoubleBosses;
         internal static ConfigEntry<string> NeverDouble;
 
+        internal static ConfigEntry<bool> ShowCompendiumPage;
+
         internal static void Bind(ConfigFile cfg)
         {
             // Every mod here has one, and it means the same thing every time: loaded, bound,
@@ -136,6 +138,15 @@ namespace Vandi
                 + "BossBiomes for now, and doubling a metal for a boss that may turn out to be "
                 + "somebody else's is the sort of thing that cannot be taken back from a player. "
                 + "Remove it once the Deep North has its own boss.");
+
+            // Personal, and declared so in the plugin: a switch for what one player's screen draws
+            // is not the host's to take away, and Core would otherwise impose the server's copy of it.
+            ShowCompendiumPage = cfg.Bind("Display", "ShowCompendiumPage", true,
+                "Add a Vandi page to the compendium's list, beside Logs and Active Effects: every "
+                + "boss grouped by its biome with your own kill count, what each kill has added to "
+                + "the star chance there, the stars the boss comes back with, and, when Malmr is "
+                + "installed, which of its metals wait for which kill. It only reads what the "
+                + "world already holds. Off removes the page and changes nothing else.");
         }
     }
 }

@@ -34,6 +34,9 @@ harder.
   ceiling.
 - Each repeat kill also makes that boss **one star harder** the next time you summon it, capped
   at two.
+- The compendium has a **Vandi page** that shows all of it for you: each boss by biome with your
+  kill count, what every kill adds to the star chance and to the boss, and the road still ahead.
+  With Malmr installed it also says which of its metals wait for which kill.
 - All of it is yours. A player who joined last week walks into an ordinary Black Forest while
   the veteran standing beside them does not.
 
@@ -153,6 +156,16 @@ opens only once you have beaten that biome's boss at one star, which is your sec
   handover to a different machine.
 - **The kill is recorded** by the client that owned the boss, from that stamp. A boss that was
   never summoned through an altar credits nobody.
+- **The compendium page** only reads. It asks the same functions the star roll and the altar ask,
+  `Stars.Earned` for what a count of kills adds and `Summon.StarsFor` for the boss's stars, so it
+  cannot disagree with the world. Malmr's lines come from Malmr's own unlock table and gate,
+  read by reflection, and are simply absent when Malmr is not installed or cannot be read. The
+  page is drawn over the compendium's own text area, so the list, Escape and the gamepad stay
+  the game's. On a gamepad, left and right on the d-pad walk the bosses and the right stick scrolls
+  the boss. It is the third entry, after Active Effects and Logs, so the compendium still opens on
+  what it always did. Each side scrolls on its own when it is taller than the window, with the
+  compendium's own scrollbar, so a long list of bosses or a boss with the Malmr lines and the road
+  ahead never runs off the bottom.
 
 ## Settings
 
@@ -170,13 +183,14 @@ The file is `BepInEx/config/ezomic.valheim.vandi.cfg`, written on first run.
 | `DoubleAtKills` | 3 | Kills of a biome's boss needed for its metal to drop double for you. 0 is off |
 | `DoubleBosses` | the five with metal | Boss keys that can double their biome's metal. Eikthyr and the Queen are not on it |
 | `NeverDouble` | `BloodGoldOre, BloodGold` | Prefab names that never double, whatever the kills |
+| `ShowCompendiumPage` | true | The Vandi page in the compendium. Each player's own switch, never the host's |
 
 On a server with Core the host's values apply to everyone, so these are the server's decision
 and not each player's.
 
 ## Testing
 
-`scenarios/` holds three Devkit scenarios, the first two below and `vandi-metal-doubles-at-three-kills`, which has not been run yet. It checks the verdict `vandi metal` prints at two kills and at three, and that the counter of doubled stacks moves only when a deposit breaks at three. What it cannot see is a second player breaking a deposit the first one owns. `vandi-stars-per-biome` goes to the nearest Meadows,
+`scenarios/` holds five Devkit scenarios. `vandi-metal-doubles-at-three-kills` has not been run yet. It checks the verdict `vandi metal` prints at two kills and at three, and that the counter of doubled stacks moves only when a deposit breaks at three. What it cannot see is a second player breaking a deposit the first one owns. `vandi-stars-per-biome` goes to the nearest Meadows,
 reads the star roll there, seeds a record and checks how the roll moves at each step, including
 that a boss from another biome changes nothing. It measures first because the roll is not 10
 everywhere: in 1.0 a biome sector can carry a modifier that multiplies it, and in one Meadows
@@ -186,8 +200,12 @@ which is what the scenario reads.
 `vandi-summoner-gets-the-credit` brings its own Eikthyr altar through `location`, so it needs
 only a little open ground ahead of you, most simply in the Meadows. It drives the real summoning
 path, because the boss half is only real through an altar.
+`vandi-compendium-page` makes a real kill at that altar and reads the compendium page before it,
+after it and while it is open, checking the numbers move and that no label is squeezed to no
+height. `vandi-compendium-malmr-line` seeds kills and checks the Malmr lines, and needs Malmr in
+the profile. Those last two, like the metal scenario, have been written and built but not yet run in game.
 
-Both passed on 2026-09-28 and again on 2026-09-29, the second time at 43 and 25 steps. On
+The first two passed on 2026-09-28 and again on 2026-09-29, the second time at 43 and 25 steps. On
 2026-09-30 a two-player run on a dedicated server, one client summoning and killing and the
 other standing by, credited each boss kill once, to the player who made the offering. The one
 standing by gained nothing, although on that run its machine owned both bosses and wrote the
