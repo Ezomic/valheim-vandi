@@ -29,6 +29,8 @@ namespace Vandi
         internal static ConfigEntry<bool> HarderBosses;
         internal static ConfigEntry<int> BossStarCap;
 
+        internal static ConfigEntry<bool> ShowCompendiumPage;
+
         internal static void Bind(ConfigFile cfg)
         {
             // Every mod here has one, and it means the same thing every time: loaded, bound,
@@ -100,6 +102,15 @@ namespace Vandi
                 + "is what a creature can reach in vanilla, and a two star boss hits hard "
                 + "enough that a third would be asking for a different party rather than a "
                 + "better one.");
+
+            // Personal, and declared so in the plugin: a switch for what one player's screen draws
+            // is not the host's to take away, and Core would otherwise impose the server's copy of it.
+            ShowCompendiumPage = cfg.Bind("Display", "ShowCompendiumPage", true,
+                "Add a Vandi page to the compendium's list, beside Logs and Active Effects: every "
+                + "boss grouped by its biome with your own kill count, what each kill has added to "
+                + "the star chance there, the stars the boss comes back with, and, when Malmr is "
+                + "installed, which of its metals wait for which kill. It only reads what the "
+                + "world already holds. Off removes the page and changes nothing else.");
         }
     }
 }

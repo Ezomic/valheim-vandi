@@ -86,9 +86,28 @@ namespace Vandi
             _harmony.PatchAll(typeof(Summon));
             _harmony.PatchAll(typeof(Kills.Readout));
 
+            // One seam at a time, each on its own, so a game update that renames one of the
+            // compendium's methods costs the page and never the star roll or the kill credit.
+            PatchPage(typeof(CompendiumPage.ListPatch));
+            PatchPage(typeof(CompendiumPage.ShowPatch));
+            PatchPage(typeof(CompendiumPage.HudPatch));
+
             // The startup line every mod in the suite writes. It is how a log answers "which
             // build of what is actually loaded" without anyone guessing.
             Log.LogInfo(PluginName + " " + PluginVersion + " by " + PluginAuthor + " - ready.");
+        }
+
+        private void PatchPage(System.Type patch)
+        {
+            try
+            {
+                _harmony.PatchAll(patch);
+            }
+            catch (System.Exception error)
+            {
+                Log.LogError("The compendium page could not be patched in (" + patch.Name + "), so it "
+                    + "stays out this session. Nothing else is affected. " + error.Message);
+            }
         }
 
         /// <summary>
@@ -139,11 +158,35 @@ namespace Vandi
             // someone's keys for the evening is the kind of sync that gets a mod uninstalled.
             Suite.Sync(VandiConfig.Enabled);
 
+            try
+            {
+                KeepPageLocal();
+            }
+            catch (System.Exception error)
+            {
+                // An older Core has no Suite.Local. The switch is then the host's like every other
+                // entry, which is a worse default and not a broken mod.
+                Log.LogInfo("Core cannot keep ShowCompendiumPage personal (" + error.Message + ").");
+            }
+
             // If the mod reads a data file that decides what it does, hash it too. The gate
             // catches two ends on different builds; it cannot catch two ends running the
             // same build over different text unless it is told.
             //
             //     Suite.Data(File.ReadAllText(path));
+        }
+
+        /// <summary>
+        /// What the compendium page draws is one player's own screen. Core syncs a mod's whole config
+        /// from the host unless told otherwise, so the switch is declared local. Its own method and
+        /// never inlined, for RegisterWithCore's reason one level down: an old Core without
+        /// Suite.Local then fails this call, which the caller catches, rather than the JIT of
+        /// RegisterWithCore and the version gate with it.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void KeepPageLocal()
+        {
+            Suite.Local(VandiConfig.ShowCompendiumPage);
         }
 
         private void OnDestroy()

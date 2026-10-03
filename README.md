@@ -34,6 +34,9 @@ harder.
   ceiling.
 - Each repeat kill also makes that boss **one star harder** the next time you summon it, capped
   at two.
+- The compendium has a **Vandi page** that shows all of it for you: each boss by biome with your
+  kill count, what every kill adds to the star chance and to the boss, and the road still ahead.
+  With Malmr installed it also says which of its metals wait for which kill.
 - All of it is yours. A player who joined last week walks into an ordinary Black Forest while
   the veteran standing beside them does not.
 
@@ -110,6 +113,12 @@ opens only once you have beaten that biome's boss at one star, which is your sec
   handover to a different machine.
 - **The kill is recorded** by the client that owned the boss, from that stamp. A boss that was
   never summoned through an altar credits nobody.
+- **The compendium page** only reads. It asks the same functions the star roll and the altar ask,
+  `Stars.Earned` for what a count of kills adds and `Summon.StarsFor` for the boss's stars, so it
+  cannot disagree with the world. Malmr's lines come from Malmr's own unlock table and gate,
+  read by reflection, and are simply absent when Malmr is not installed or cannot be read. The
+  page is drawn over the compendium's own text area, so the list, Escape and the gamepad stay
+  the game's. On a gamepad, left and right on the d-pad walk the bosses.
 
 ## Settings
 
@@ -124,13 +133,14 @@ The file is `BepInEx/config/ezomic.valheim.vandi.cfg`, written on first run.
 | `BossBiomes` | the eight pairings | `boss:biome`, comma separated, spelled the same as Utangard and Vaettir spell it |
 | `HarderBosses` | true | A summoned boss you have killed before arrives with stars |
 | `BossStarCap` | 2 | The most stars a summoned boss can gain |
+| `ShowCompendiumPage` | true | The Vandi page in the compendium. Each player's own switch, never the host's |
 
 On a server with Core the host's values apply to everyone, so these are the server's decision
 and not each player's.
 
 ## Testing
 
-`scenarios/` holds two Devkit scenarios. `vandi-stars-per-biome` goes to the nearest Meadows,
+`scenarios/` holds four Devkit scenarios. `vandi-stars-per-biome` goes to the nearest Meadows,
 reads the star roll there, seeds a record and checks how the roll moves at each step, including
 that a boss from another biome changes nothing. It measures first because the roll is not 10
 everywhere: in 1.0 a biome sector can carry a modifier that multiplies it, and in one Meadows
@@ -140,8 +150,12 @@ which is what the scenario reads.
 `vandi-summoner-gets-the-credit` brings its own Eikthyr altar through `location`, so it needs
 only a little open ground ahead of you, most simply in the Meadows. It drives the real summoning
 path, because the boss half is only real through an altar.
+`vandi-compendium-page` makes a real kill at that altar and reads the compendium page before it,
+after it and while it is open, checking the numbers move and that no label is squeezed to no
+height. `vandi-compendium-malmr-line` seeds kills and checks the Malmr lines, and needs Malmr in
+the profile. Those last two have been written and built but not yet run in game.
 
-Both passed on 2026-09-28 and again on 2026-09-29, the second time at 43 and 25 steps. On
+The first two passed on 2026-09-28 and again on 2026-09-29, the second time at 43 and 25 steps. On
 2026-09-30 a two-player run on a dedicated server, one client summoning and killing and the
 other standing by, credited each boss kill once, to the player who made the offering. The one
 standing by gained nothing, although on that run its machine owned both bosses and wrote the

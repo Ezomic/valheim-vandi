@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+- **A Vandi page in the compendium.** It sits beside Logs and Active Effects. The left side lists
+  every boss Vandi counts, grouped by biome, with your own kill count on each. Pick one and the
+  right side shows what each kill adds to the star chance in its biome, which kill the boss
+  comes back with a star on, the stars the next summon will have, and where you stand on the
+  ladder. Every figure comes from the same functions the star roll and the altar use, so the page
+  cannot say something the world does not do. `ShowCompendiumPage` in the config turns it off,
+  and it stays each player's own setting under Core.
+- **Malmr's unlocks show on it.** With Malmr installed, a boss that gates one of its metals says
+  what that metal is waiting for: how many more kills, the Pickaxes level, or that it is open. The
+  other bosses that still gate a metal are listed under The road ahead. Without Malmr there is no
+  Malmr line and nothing else changes. Vandi reads Malmr's own table and gate for this by
+  reflection, so the two stay in step, and a Malmr it cannot read costs only those lines.
+- Two Devkit scenarios: `vandi-compendium-page` makes a real kill at an altar and checks the
+  page's numbers move, and `vandi-compendium-malmr-line` checks the Malmr lines against seeded
+  kills. Both include the `tall` checks that catch a label squeezed to no height.
+- The page is built only from code, with no sprite or bundle asset, and is rebuilt for every new
+  compendium. It was written without being run in game; the first look is the first test.
+
 ## 1.0.0 - 2026-09-30
 
 First release. Both Devkit scenarios in `scenarios/` passed on 2026-09-29, and a two-player
