@@ -18,9 +18,9 @@ namespace Vandi
     ///   you collect.
     /// - <b>Who.</b> The attacker on the blow that broke the chunk or killed the creature,
     ///   read off its HitData. OnCreateNew carries no attacker, so the three places that
-    ///   create metal (MineRock5 and MineRock chunks, Destructible scrap piles, and a
-    ///   creature's CharacterDrop) open a window around the call that sees the blow and close
-    ///   it again. Malmr breaks a vein with a clone of the player's own blow, which keeps the
+    ///   create metal (MineRock5 and MineRock chunks, and Destructible scrap piles) open a
+    ///   window around the call that sees the blow and close it again. A creature has no
+    ///   window, see below. Malmr breaks a vein with a clone of the player's own blow, which keeps the
     ///   attacker, so the player whose swing filled the bar gets the whole deposit doubled.
     ///   When the attacker cannot be resolved on this machine (the player's object is not
     ///   loaded here, or the blow came from something that is not a player) nobody is
@@ -38,8 +38,13 @@ namespace Vandi
     /// crafted items are outputs, so they never double.
     ///
     /// Creatures are the exception to "through OnCreateNew": CharacterDrop.DropItems writes the
-    /// item's fields itself and never calls it, and it makes one prefab per item, so a
-    /// creature's metal is doubled by doubling the count in its drop list instead.
+    /// item's fields itself and never calls it, so a creature's metal is doubled by doubling the
+    /// count in its drop list instead. And not in a window around CharacterDrop.OnDeath: a
+    /// creature whose Ragdoll has m_dropItems has its list made by Ragdoll.Setup through
+    /// GenerateDropList during Character.OnDeath, with CharacterDrop's own drops switched off,
+    /// and dropped seconds later by Ragdoll.SpawnLoot, when no blow is in sight. Both paths
+    /// call GenerateDropList on the owner while Character.m_lastHit is still the killing
+    /// blow, so that is where the list is doubled.
     /// </summary>
     internal static class Metal
     {
@@ -57,6 +62,13 @@ namespace Vandi
         private static long _credited;
         private static readonly HashSet<int> Done = new HashSet<int>();
 
+        /// <summary>
+        /// The window each Open replaced, restored by the matching Close. Windows nest: a
+        /// Destructible that spawns a MineRock5 on destruction calls MineRock5.Damage inside its
+        /// own Destroy, and the inner Close must give the outer window back rather than end it.
+        /// </summary>
+        private static readonly Stack<KeyValuePair<bool, long>> Outer = new Stack<KeyValuePair<bool, long>>();
+
         /// <summary>Stacks doubled since the game started. Read by `vandi metal`.</summary>
         internal static int Doubled;
 
@@ -64,6 +76,7 @@ namespace Vandi
         private static HashSet<string> _inputs;
         private static ZNetScene _inputsFor;
         private static float _nextPrepare;
+        private static bool _pending;
 
         internal static void Wire()
         {
@@ -74,22 +87,40 @@ namespace Vandi
 
         private static void Open(HitData hit)
         {
+            Outer.Push(new KeyValuePair<bool, long>(_open, _credited));
             _open = false;
-            Done.Clear();
 
-            if (!VandiConfig.Enabled.Value || VandiConfig.DoubleAtKills.Value <= 0 || hit == null) return;
+            try
+            {
+                if (!VandiConfig.Enabled.Value || VandiConfig.DoubleAtKills.Value <= 0 || hit == null) return;
 
-            Player player = hit.GetAttacker() as Player;
-            if (player == null) return;
+                Player player = hit.GetAttacker() as Player;
+                if (player == null) return;
 
-            _credited = player.GetPlayerID();
-            _open = true;
+                _credited = player.GetPlayerID();
+                _open = true;
+            }
+            catch (Exception error)
+            {
+                VandiPlugin.LogOnce("Vandi could not read the attacker of a blow, so that blow's metal "
+                    + "does not double: " + error);
+            }
         }
 
         private static void Close()
         {
-            _open = false;
-            Done.Clear();
+            if (Outer.Count == 0)
+            {
+                _open = false;
+                Done.Clear();
+                return;
+            }
+
+            KeyValuePair<bool, long> before = Outer.Pop();
+            _open = before.Key;
+            _credited = before.Value;
+
+            if (Outer.Count == 0) Done.Clear();
         }
 
         [HarmonyPatch(typeof(MineRock5), "DamageArea")]
@@ -158,29 +189,18 @@ namespace Vandi
             return _lastHit == null || character == null ? null : _lastHit.GetValue(character) as HitData;
         }
 
-        [HarmonyPatch(typeof(CharacterDrop), "OnDeath")]
-        [HarmonyPrefix]
-        private static void CreatureOpens(CharacterDrop __instance)
-        {
-            Character character = __instance == null ? null : __instance.GetComponent<Character>();
-            Open(LastHit(character));
-        }
-
-        [HarmonyPatch(typeof(CharacterDrop), "OnDeath")]
-        [HarmonyFinalizer]
-        private static void CreatureCloses()
-        {
-            Close();
-        }
-
         [HarmonyPatch(typeof(ItemDrop), nameof(ItemDrop.OnCreateNew), new[] { typeof(GameObject), typeof(bool) })]
         [HarmonyPostfix]
         private static void CreatedFromObject(GameObject go)
         {
             if (!_open || go == null) return;
 
-            ItemDrop drop;
-            if (go.TryGetComponent(out drop)) Double(drop);
+            try
+            {
+                ItemDrop drop;
+                if (go.TryGetComponent(out drop)) Double(drop);
+            }
+            catch (Exception error) { DoubleFailed(error); }
         }
 
         // Both overloads are patched. The object overload calls this one, and a method this
@@ -192,7 +212,14 @@ namespace Vandi
         {
             if (!_open || item == null) return;
 
-            Double(item);
+            try { Double(item); }
+            catch (Exception error) { DoubleFailed(error); }
+        }
+
+        private static void DoubleFailed(Exception error)
+        {
+            VandiPlugin.LogOnce("Doubling a metal drop failed, so that drop was left as the game made it: "
+                + error);
         }
 
         private static void Double(ItemDrop drop)
@@ -215,27 +242,47 @@ namespace Vandi
                     + " became " + data.m_stack + ".");
         }
 
-        [HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.DropItems))]
-        [HarmonyPrefix]
-        private static void CreatureDrops(List<KeyValuePair<GameObject, int>> drops)
+        /// <summary>
+        /// Doubles a creature's metal where its drop list is made. See the class summary for why
+        /// this is GenerateDropList and not DropItems. The attacker is read off the creature's
+        /// last blow, and nothing doubles when it is not a player on this machine.
+        /// </summary>
+        [HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
+        [HarmonyPostfix]
+        private static void CreatureList(CharacterDrop __instance, List<KeyValuePair<GameObject, int>> __result)
         {
-            if (!_open || drops == null) return;
+            if (__result == null || __result.Count == 0) return;
 
-            for (int i = 0; i < drops.Count; i++)
+            try
             {
-                KeyValuePair<GameObject, int> entry = drops[i];
-                if (entry.Key == null) continue;
+                if (!VandiConfig.Enabled.Value || VandiConfig.DoubleAtKills.Value <= 0) return;
 
-                string why;
-                if (!Qualifies(_credited, Utils.GetPrefabName(entry.Key), out why)) continue;
+                Character character = __instance == null ? null : __instance.GetComponent<Character>();
+                HitData hit = LastHit(character);
+                if (hit == null) return;
 
-                drops[i] = new KeyValuePair<GameObject, int>(entry.Key, entry.Value * 2);
-                Doubled += entry.Value;
+                Player player = hit.GetAttacker() as Player;
+                if (player == null) return;
 
-                if (VandiConfig.Verbose.Value)
-                    VandiPlugin.Log.LogInfo("Doubled " + entry.Key.name + " for player " + _credited
-                        + ": " + entry.Value + " became " + entry.Value * 2 + ".");
+                long id = player.GetPlayerID();
+
+                for (int i = 0; i < __result.Count; i++)
+                {
+                    KeyValuePair<GameObject, int> entry = __result[i];
+                    if (entry.Key == null) continue;
+
+                    string why;
+                    if (!Qualifies(id, Utils.GetPrefabName(entry.Key), out why)) continue;
+
+                    __result[i] = new KeyValuePair<GameObject, int>(entry.Key, entry.Value * 2);
+                    Doubled += entry.Value;
+
+                    if (VandiConfig.Verbose.Value)
+                        VandiPlugin.Log.LogInfo("Doubled " + entry.Key.name + " for player " + id
+                            + ": " + entry.Value + " became " + entry.Value * 2 + ".");
+                }
             }
+            catch (Exception error) { DoubleFailed(error); }
         }
 
         /// <summary>
@@ -383,12 +430,39 @@ namespace Vandi
             Reset();
         }
 
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        [HarmonyPostfix]
+        private static void SceneBuilt()
+        {
+            Reset();
+        }
+
         private static void Reset()
         {
             BiomeIndex.Invalidate();
             _inputs = null;
             Placed.Clear();
             _nextPrepare = 0f;
+            _pending = true;
+        }
+
+        /// <summary>
+        /// Called from the plugin's Update. Builds the smelter inputs and the biome index as
+        /// soon as a world is there, retrying through Ready's own five second throttle until
+        /// the index is complete, so the first metal drop of a session does not pay for a scan
+        /// of every prefab. A drop that arrives before this has finished still builds on demand.
+        /// </summary>
+        internal static void Tick()
+        {
+            if (!_pending || ZNetScene.instance == null) return;
+
+            try { if (Ready()) _pending = false; }
+            catch (Exception error)
+            {
+                _pending = false;
+                VandiPlugin.LogOnce("Vandi could not prepare its metal list at world load, so it will "
+                    + "be built at the first drop instead: " + error);
+            }
         }
 
         private static bool IsListed(string list, string name)

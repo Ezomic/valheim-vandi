@@ -93,8 +93,9 @@ namespace Vandi
             try { _harmony.PatchAll(typeof(Metal)); }
             catch (System.Exception error)
             {
-                Log.LogWarning("Metal doubling could not be patched and is off. The rest of "
-                    + "Vandi is unaffected: " + error);
+                Log.LogWarning("Metal doubling could not be fully patched and may be partly off, "
+                    + "since PatchAll applies the patches it reaches before the one that failed. "
+                    + "The rest of Vandi is unaffected: " + error);
             }
 
             // The startup line every mod in the suite writes. It is how a log answers "which
@@ -155,6 +156,11 @@ namespace Vandi
             // same build over different text unless it is told.
             //
             //     Suite.Data(File.ReadAllText(path));
+        }
+
+        private void Update()
+        {
+            Metal.Tick();
         }
 
         private void OnDestroy()

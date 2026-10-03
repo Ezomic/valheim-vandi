@@ -75,7 +75,9 @@ it pays. `DoubleAtKills` is that number, and 0 turns the whole thing off.
   something that is not a player, such as a tamed creature. Vandi does not guess the nearest
   player in that case, since that would hand one player's reward to another.
 - **A creature's metal is doubled in its drop list.** The game does not create a creature's
-  drops the way it creates a deposit's, so a fuling's scrap is doubled by doubling the count.
+  drops the way it creates a deposit's, so a fuling's scrap is doubled by doubling the count. It
+  is done where the game makes the list, when the creature dies, because most creatures leave a
+  ragdoll that drops the loot seconds later, when nobody is striking anything.
 
 This is a reward for the hardest summon and not a relief from a gate, which is why it lives here
 and not in Utangard. It does speed up gear, which pulls against the idea of not rushing. It only

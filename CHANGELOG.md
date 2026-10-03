@@ -14,6 +14,12 @@
   friend cannot mine for you. A vein Malmr breaks goes to the player whose swing filled the bar.
   The machine that owns the rock makes the decision from the world's global keys, so a client
   that does not own it is covered. Not run in game yet.
+- **A creature's metal doubles from its drop list, made when it dies.** Most creatures drop their
+  loot from a ragdoll a moment after death, and the first version only looked while the creature
+  itself dropped, so a fuling's scrap almost never doubled. A blow that breaks a deposit inside
+  another (a scrap pile that spawns a rock) no longer ends the outer blow's credit, a drop that
+  fails to double is left as the game made it and logged once, and the metal list is built when
+  the world loads instead of at the first drop.
 
 ## 1.0.0 - 2026-09-30
 
