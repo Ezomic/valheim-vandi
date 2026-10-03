@@ -51,8 +51,9 @@ namespace Vandi
     /// <b>Built again for every compendium.</b> A world load destroys the inventory window and the
     /// compendium with it, and a page cloned from the old one's text holds fonts that are gone. It
     /// is forgotten on Hud.Awake, and built again the first time the page is shown in the new
-    /// window, so nothing here outlives the UI it was cloned from. It borrows no sprite and no
-    /// bundle asset: every edge and face is a flat colour.
+    /// window, so nothing here outlives the UI it was cloned from. It borrows no bundle asset and
+    /// every edge and face is a flat colour; the one thing copied is the compendium's scrollbar,
+    /// for the two columns that scroll, which dies with the page.
     /// </summary>
     internal static class CompendiumPage
     {
@@ -101,6 +102,18 @@ namespace Vandi
 
         private const float RefreshSeconds = 1f;
 
+        /// <summary>Active Effects and Logs, which UpdateTextsList puts at the top of the list.</summary>
+        private const int AfterVanilla = 2;
+
+        /// <summary>
+        /// What sits round the two columns, top to bottom: the frame's 1 px each side and the body's
+        /// 10 above and 14 below. The columns get the page's height less this, and scroll inside it.
+        /// </summary>
+        private const float ColumnsPadding = 26f;
+
+        /// <summary>Never shorter than this, whatever the host measures, so a bad measure is not a squeeze.</summary>
+        private const float LeastColumns = 200f;
+
         // ------------------------------------------------------------------- state -------
 
         private static TextsDialog.TextInfo _page;
@@ -109,6 +122,9 @@ namespace Vandi
         private static GameObject _root;
         private static RectTransform _host;
         private static LayoutElement _floor;
+        private static LayoutElement _columns;
+        private static ScrollRect _listScroll;
+        private static ScrollRect _detailScroll;
 
         private static float _fitScale = -1f;
         private static Vector2 _fitSize;
@@ -205,9 +221,12 @@ namespace Vandi
                     if (texts == null) return;
 
                     // The text page is the whole page in words, and still complete when the panel
-                    // is drawn over it.
+                    // is drawn over it. Third, after Active Effects and Logs, which vanilla puts
+                    // first: the compendium opens on its first entry (Setup calls ShowText(0)), and
+                    // opening on the Vandi page every time would take the screen over from the
+                    // thing most people open it for. Another mod that inserts at 0 still goes above.
                     _page = new TextsDialog.TextInfo(VandiPlugin.PluginName, Summary());
-                    texts.Insert(0, _page);
+                    texts.Insert(Math.Min(AfterVanilla, texts.Count), _page);
                 }
                 catch (Exception e)
                 {
@@ -308,10 +327,13 @@ namespace Vandi
                 // owe me" is the question the page is opened to ask. With none, the first boss.
                 _selected = Default();
 
+                MalmrLink.Opened();
+
                 _root.transform.SetAsLastSibling();
                 _root.SetActive(true);
                 Fit();
                 Draw();
+                Settle(true);
 
                 // Only once the page has drawn. Anything above that throws leaves the text page
                 // showing, which is the fallback.
@@ -340,6 +362,16 @@ namespace Vandi
                     else if (ZInput.GetButtonDown("JoyDPadRight")) step = 1;
                 }
 
+                // The right stick scrolls the boss the way it scrolls vanilla's text, which this
+                // page has blanked and so left with nothing to scroll.
+                if (ZInput.IsExclusiveGamepadActive() && _detailScroll != null)
+                {
+                    float stick = ZInput.GetJoyRightStickY();
+                    if (Mathf.Abs(stick) > 0.1f)
+                        _detailScroll.verticalNormalizedPosition = Mathf.Clamp01(
+                            _detailScroll.verticalNormalizedPosition + stick * 2f * Time.unscaledDeltaTime);
+                }
+
                 if (step != 0) Walk(step);
                 else if (Time.unscaledTime < _nextRefresh) return;
 
@@ -355,6 +387,7 @@ namespace Vandi
 
                 Fit();
                 Draw();
+                if (step != 0) Settle(true);
             }
             catch (Exception e)
             {
@@ -370,11 +403,48 @@ namespace Vandi
             {
                 _selected = key;
                 Draw();
+                Settle(false);
             }
             catch (Exception e)
             {
                 Abandon(_dialog, e);
             }
+        }
+
+        /// <summary>
+        /// After a boss is chosen: the right column starts at its top, and the list is moved just
+        /// far enough that the chosen row is in it. The gamepad walks to rows that may be below the
+        /// fold, and the page opens on a boss that may be. Rows are placed by a layout pass, so a
+        /// call from where none has run yet asks for one first.
+        /// </summary>
+        private static void Settle(bool layout)
+        {
+            if (_detailScroll != null) _detailScroll.verticalNormalizedPosition = 1f;
+            if (_listScroll == null) return;
+
+            if (layout) Canvas.ForceUpdateCanvases();
+
+            foreach (BossRow row in Rows)
+                if (row.Key == _selected) { Reveal(_listScroll, (RectTransform)row.Go.transform); break; }
+        }
+
+        private static void Reveal(ScrollRect scroll, RectTransform item)
+        {
+            RectTransform content = scroll.content;
+            float view = scroll.viewport.rect.height;
+            float room = content.rect.height - view;
+            if (room <= 0f) return;
+
+            Vector3[] corners = new Vector3[4];
+            item.GetWorldCorners(corners);
+            float top = content.InverseTransformPoint(corners[1]).y;
+            float bottom = content.InverseTransformPoint(corners[0]).y;
+
+            float offset = content.anchoredPosition.y;
+            if (top > -offset) offset = -top;
+            else if (bottom < -(offset + view)) offset = -bottom - view;
+
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, Mathf.Clamp(offset, 0f, room));
         }
 
         private static void Walk(int step)
@@ -943,12 +1013,17 @@ namespace Vandi
             halves.spacing = ColumnGap;
             Across(halves, false);
 
+            // Its height is Fit's: see there. Fixed, so each column's content is what scrolls, and
+            // a content rect is sized by its own fitter and never squeezed to a viewport.
+            _columns = split.gameObject.AddComponent<LayoutElement>();
+            _columns.flexibleHeight = 0f;
+
             List<Bosses.Boss> roster = Bosses.Roster();
             int sounded = 0;
 
             // ---- the list on the left: a heading, then one row per boss, 5 apart.
-            RectTransform list = Child("List", split);
-            LayoutElement listWidth = list.gameObject.AddComponent<LayoutElement>();
+            RectTransform list = Scroller("List", split, dialog, out _listScroll);
+            LayoutElement listWidth = _listScroll.GetComponent<LayoutElement>();
             listWidth.minWidth = ListWidth;
             listWidth.preferredWidth = ListWidth;
             listWidth.flexibleWidth = 0f;
@@ -967,8 +1042,8 @@ namespace Vandi
             }
 
             // ---- the boss on the right.
-            RectTransform detail = Child("Detail", split);
-            LayoutElement share = detail.gameObject.AddComponent<LayoutElement>();
+            RectTransform detail = Scroller("Detail", split, dialog, out _detailScroll);
+            LayoutElement share = _detailScroll.GetComponent<LayoutElement>();
             share.minWidth = 0f;
             share.preferredWidth = 0f;
             share.flexibleWidth = 1f;
@@ -1010,6 +1085,9 @@ namespace Vandi
 
             _built = Signature();
 
+            _fitScale = -1f;
+            Fit();
+
             Rect area = host.rect;
             VandiPlugin.Log.LogInfo("Compendium page built over '" + host.name + "'"
                 + (passed.Length > 0 ? " (past " + passed + ", sized by what is in it)" : "") + ", "
@@ -1019,6 +1097,103 @@ namespace Vandi
                 + ", the compendium's own text at size " + donor.fontSize.ToString("0.#", Inv)
                 + ", one line of text at " + _naturalPerEm.ToString("0.00", Inv) + " em, "
                 + sounded + " of " + Rows.Count + " boss rows with vanilla's click sound.");
+        }
+
+        /// <summary>
+        /// A column that scrolls: a clipping viewport inside a ScrollRect, a content rect hung from
+        /// its top that is exactly as tall as what it holds, and the compendium's own scrollbar
+        /// cloned beside it, shown only when there is something to scroll. The content rect is what
+        /// is returned and what the caller fills.
+        ///
+        /// The content is sized by its own ContentSizeFitter and the viewport never touches its
+        /// height, so this keeps the rule Fit is written round: no label is handed less height than
+        /// its text needs, however short the viewport is.
+        /// </summary>
+        private static RectTransform Scroller(string name, RectTransform parent, TextsDialog dialog,
+            out ScrollRect scroll)
+        {
+            RectTransform outer = Child(name + "_Scroll", parent);
+            LayoutElement fill = outer.gameObject.AddComponent<LayoutElement>();
+            fill.minHeight = 0f;
+            fill.flexibleHeight = 1f;
+
+            RectTransform viewport = Child("Viewport", outer);
+            Inset(viewport, 0f);
+            viewport.gameObject.AddComponent<RectMask2D>();
+
+            // Invisible and catching the pointer, so the wheel over blank page still scrolls it.
+            Paint(viewport, Color.clear, true);
+
+            RectTransform content = Child(name, viewport);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0f, 1f);
+            content.offsetMin = Vector2.zero;
+            content.offsetMax = Vector2.zero;
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            ScrollRect rect = outer.gameObject.AddComponent<ScrollRect>();
+            rect.horizontal = false;
+            rect.vertical = true;
+            rect.movementType = ScrollRect.MovementType.Clamped;
+            rect.scrollSensitivity = dialog.m_leftScrollRect != null ? dialog.m_leftScrollRect.scrollSensitivity : 30f;
+            rect.viewport = viewport;
+            rect.content = content;
+
+            Bar(rect, outer, dialog);
+
+            scroll = rect;
+            return content;
+        }
+
+        /// <summary>
+        /// The compendium's right-hand scrollbar, copied, so the handle and track are vanilla's and
+        /// follow its skin. Only its look is kept: every component that is not the bar or a graphic
+        /// is removed, and the copy's own listeners with them, so it cannot drive the text it was
+        /// cloned beside. Without a scrollbar to copy the column still scrolls by wheel and by drag.
+        /// </summary>
+        private static void Bar(ScrollRect scroll, RectTransform outer, TextsDialog dialog)
+        {
+            Scrollbar donor = dialog.m_rightScrollbar;
+            if (donor == null) return;
+
+            try
+            {
+                float width = Mathf.Clamp(((RectTransform)donor.transform).rect.width, 8f, 24f);
+
+                GameObject go = Object.Instantiate(donor.gameObject, outer);
+                go.name = "Scrollbar";
+
+                foreach (MonoBehaviour part in go.GetComponentsInChildren<MonoBehaviour>(true))
+                {
+                    if (part == null || part is Scrollbar || part is Graphic || part is Mask || part is RectMask2D)
+                        continue;
+
+                    Object.DestroyImmediate(part);
+                }
+
+                RectTransform rect = (RectTransform)go.transform;
+                rect.anchorMin = new Vector2(1f, 0f);
+                rect.anchorMax = new Vector2(1f, 1f);
+                rect.pivot = new Vector2(1f, 0.5f);
+                rect.sizeDelta = new Vector2(width, 0f);
+                rect.anchoredPosition = Vector2.zero;
+                rect.localScale = Vector3.one;
+
+                Scrollbar bar = go.GetComponent<Scrollbar>();
+                bar.onValueChanged = new Scrollbar.ScrollEvent();
+                bar.direction = Scrollbar.Direction.BottomToTop;
+                go.SetActive(true);
+
+                scroll.verticalScrollbar = bar;
+                scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+                scroll.verticalScrollbarSpacing = 4f;
+            }
+            catch (Exception e)
+            {
+                VandiPlugin.Log.LogWarning("Compendium page: could not copy the scrollbar, so the columns "
+                    + "scroll without one. " + e.Message);
+            }
         }
 
         /// <summary>
@@ -1197,6 +1372,17 @@ namespace Vandi
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Max(0f, size.x - 2f * EdgeMargin) * drawn);
 
             _floor.minHeight = Mathf.Max(0f, size.y - EdgeMargin) * drawn;
+
+            // The two columns are as tall as the page less what is round them, and each scrolls
+            // inside that. Not as tall as what they hold: a right column of 660 to 760 units does
+            // not fit 617 with Malmr loaded and an early boss chosen, and a page taller than the
+            // host is clipped with nothing to scroll it.
+            if (_columns != null)
+            {
+                float height = Mathf.Max(LeastColumns, _floor.minHeight - ColumnsPadding);
+                _columns.minHeight = height;
+                _columns.preferredHeight = height;
+            }
 
             _pixelsPerUnit = pixels * grow;
             foreach (RectTransform rim in Rims) Inset(rim, Edge());
@@ -1508,6 +1694,9 @@ namespace Vandi
             _dialog = null;
             _host = null;
             _floor = null;
+            _columns = null;
+            _listScroll = null;
+            _detailScroll = null;
             _fitScale = -1f;
             _fitPixels = -1f;
             _built = null;

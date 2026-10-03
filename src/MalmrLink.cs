@@ -64,18 +64,52 @@ namespace Vandi
         private static bool _usable;
         private static bool _warned;
 
+        /// <summary>
+        /// What the page read, kept until the page is opened again. The page redraws every second
+        /// and what Malmr says does not change in that time, so reading it through reflection each
+        /// time was work done for nothing.
+        /// </summary>
+        private static List<Unlock> _cache;
+
+        /// <summary>Reads in a row that threw. Three, with nothing between them, is not a blip.</summary>
+        private static int _failures;
+
+        private static float _retryAt;
+
+        private const int MostFailures = 3;
+        private const float RetrySeconds = 5f;
+
         private static Type _config, _gate, _vein, _deposits;
         private static MethodInfo _table, _gateFor, _earned, _noun, _display, _nameFor;
         private static FieldInfo _gUnlock, _gBoss, _gKillsNeeded;
         private static PropertyInfo _gOff;
 
         /// <summary>
+        /// The page was opened, so what it read last time is stale. Also lets a read that failed
+        /// recently be tried at once, since someone looking at the page again is a good moment.
+        /// </summary>
+        internal static void Opened()
+        {
+            _cache = null;
+            _retryAt = 0f;
+        }
+
+        /// <summary>
         /// Every metal Malmr ties to a boss, in its Unlocks order. Empty when Malmr is not loaded,
         /// when its BossKills is 0 (the boss half switched off), and when anything about it could
         /// not be read, which is the page's cue to show no Malmr line at all.
+        ///
+        /// Read once per opening of the page. A read that throws is tried again after a few seconds,
+        /// because a character that has not finished loading throws here and the next second is
+        /// fine; only the third failure in a row ends it for the session. A Malmr whose members are
+        /// missing is a different thing, found by Bind and final at once: another look cannot find a
+        /// method that is not there.
         /// </summary>
         internal static List<Unlock> Unlocks()
         {
+            if (_cache != null) return _cache;
+            if (Time.unscaledTime < _retryAt) return new List<Unlock>();
+
             List<Unlock> found = new List<Unlock>();
 
             try
@@ -117,11 +151,34 @@ namespace Vandi
             }
             catch (Exception error)
             {
-                Unusable("could not read its unlocks (" + error.GetType().Name + ": " + error.Message + ")");
                 found.Clear();
+                Failed(error);
+                return found;
             }
 
+            _failures = 0;
+            _cache = found;
             return found;
+        }
+
+        private static void Failed(Exception error)
+        {
+            Exception cause = error is TargetInvocationException && error.InnerException != null
+                ? error.InnerException
+                : error;
+
+            string what = cause.GetType().Name + ": " + cause.Message;
+            _failures++;
+
+            if (_failures >= MostFailures)
+            {
+                Unusable("could not read its unlocks " + MostFailures + " times running (" + what + ")");
+                return;
+            }
+
+            _retryAt = Time.unscaledTime + RetrySeconds;
+            VandiPlugin.LogOnce("The compendium page could not read Malmr's unlocks (" + what
+                + "). Trying again in a few seconds.");
         }
 
         /// <summary>

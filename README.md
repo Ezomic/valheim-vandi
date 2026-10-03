@@ -118,7 +118,11 @@ opens only once you have beaten that biome's boss at one star, which is your sec
   cannot disagree with the world. Malmr's lines come from Malmr's own unlock table and gate,
   read by reflection, and are simply absent when Malmr is not installed or cannot be read. The
   page is drawn over the compendium's own text area, so the list, Escape and the gamepad stay
-  the game's. On a gamepad, left and right on the d-pad walk the bosses.
+  the game's. On a gamepad, left and right on the d-pad walk the bosses and the right stick scrolls
+  the boss. It is the third entry, after Active Effects and Logs, so the compendium still opens on
+  what it always did. Each side scrolls on its own when it is taller than the window, with the
+  compendium's own scrollbar, so a long list of bosses or a boss with the Malmr lines and the road
+  ahead never runs off the bottom.
 
 ## Settings
 
