@@ -60,6 +60,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Shared source, not a reference: see the header of core\shared\BiomeIndex.cs. Vandi uses it
+         to say which biome a dropped metal belongs to, so Core stays optional. -->
+    <Compile Include="..\core\shared\BiomeIndex.cs" Link="shared\BiomeIndex.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Core carries the version gate. Private=false on purpose - Core deploys its own DLL
          to plugins\Core, and a second copy landing beside this one would be two assemblies
          sharing one BepInPlugin GUID, which is a plugin that silently does not load. -->

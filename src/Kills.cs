@@ -133,6 +133,12 @@ namespace Vandi
                 Terminal term = args.Context;
                 if (term == null) return;
 
+                if (args.Length > 1 && args[1] == "metal")
+                {
+                    Metal.Print(term, args.Args);
+                    return;
+                }
+
                 Player player = Player.m_localPlayer;
                 if (player == null || ZoneSystem.instance == null)
                 {

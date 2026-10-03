@@ -1,0 +1,93 @@
+# Vandi, LHM-27: the metal of a biome drops double for the player whose blow breaks the deposit,
+# once they have killed that biome's boss DoubleAtKills times (3 by default), and not before.
+#
+# Copper, because it is the Elder's: the Black Forest boss, defeated_gdking. The deposit is
+# mined by hand with vein mining off, so this is the plain MineRock5 path. Malmr's vein break
+# reaches the same DamageArea with a clone of the player's blow, but that is not run here.
+#
+# What it reads is the readout, not the drop table. A deposit's drop count is random, so
+# comparing ore carried before and after would pass or fail on luck. `vandi metal` prints the
+# verdict the drop code itself asks, and a counter of stacks doubled since the game started, so
+# the checks are: the verdict is no at two kills and yes at three, the counter does not move
+# when a deposit breaks at two kills, and it does when one breaks at three.
+#
+# The default DoubleAtKills of 3 is assumed, and so are the default DoubleBosses and
+# NeverDouble. A profile that has edited them makes this file wrong rather than the mod.
+#
+# THIS HAS NOT BEEN RUN. It needs a world, so it was written against the code and Devkit's
+# step list. SINGLEPLAYER, in a TEST WORLD (the stage destroys what stands within thirty
+# metres). Feed the character first. The record is put back at the end and Pickaxes restored.
+#
+# What it cannot see: a second player. Two clients, one breaking a deposit the other owns, is
+# the case the design leans on and needs two machines.
+
+god
+ghost
+
+skill Pickaxes 0
+skill Pickaxes 30
+
+unkey vandi_p_$player_defeated_gdking
+wait 1
+
+give PickaxeBlackMetal:1
+tool PickaxeBlackMetal
+
+biome Meadows
+
+landed
+stage
+
+console vandi metal
+note stacks doubled=([0-9]+) stacks
+
+# Nothing derived is wrong about the list itself: copper is a metal, flax is not, and bloodgold is
+# held back whatever the kills say.
+console vandi metal CopperOre
+printed CopperOre: biome blackforest yes
+console vandi metal Flax
+printed Flax: biome none yes
+printed doubled=no yes
+console vandi metal BloodGoldOre
+printed in NeverDouble yes
+
+# Two kills of the Elder is one short.
+key vandi_p_$player_defeated_gdking 2
+wait 1
+keyis vandi_p_$player_defeated_gdking 2
+
+console vandi metal CopperOre
+printed CopperOre: biome blackforest, doubled=no yes
+
+put rock4_copper_frac 4.5
+swing rock4_copper_frac 200
+
+console vandi metal
+went stacks doubled=([0-9]+) stacks same
+
+# The third kill is the one summoned at two stars, and it opens the doubling.
+key vandi_p_$player_defeated_gdking 3
+wait 1
+keyis vandi_p_$player_defeated_gdking 3
+
+console vandi metal CopperOre
+printed CopperOre: biome blackforest, doubled=yes yes
+
+put rock4_copper_frac 4.5
+swing rock4_copper_frac 200
+
+console vandi metal
+went stacks doubled=([0-9]+) stacks up
+
+# Somebody else's boss does nothing for copper: five kills of Bonemass leave the Elder's metal
+# where the Elder's own kills put it, here at none.
+key vandi_p_$player_defeated_gdking 0
+key vandi_p_$player_defeated_bonemass 5
+wait 1
+
+console vandi metal CopperOre
+printed CopperOre: biome blackforest, doubled=no yes
+
+unkey vandi_p_$player_defeated_gdking
+unkey vandi_p_$player_defeated_bonemass
+skill Pickaxes back
