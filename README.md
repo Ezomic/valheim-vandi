@@ -40,6 +40,47 @@ harder.
 Starred creatures drop more and a harder boss drops more, so the mod pays for the trouble it
 makes. It is a reason to go back to a biome rather than a reason to avoid one.
 
+## Metal that doubles
+
+Kill a biome's boss three times and the metal of that biome drops double for you. The third kill
+is the one that was summoned at two stars, the hardest fight the defaults give, and this is what
+it pays. `DoubleAtKills` is that number, and 0 turns the whole thing off.
+
+- **It follows the metal, not the place.** Copper is the Elder's wherever it drops, so a
+  Mistlands copper deposit doubles for a player with three Elder kills, and the Queen adds
+  nothing to it. Iron scrap, the muddy scrap piles and a fuling's black metal scrap count as the
+  metal of their biome. Bars and anything crafted never double.
+- **The metals are worked out, not listed.** A metal is anything the furnace or the blast
+  furnace takes in, placed in a biome by the same index Yoke uses. A mod that adds an ore
+  to a furnace gets it for free. `vandi metal` in the console lists every one it found and what
+  it would do for you right now, and `vandi metal CopperOre` answers for a single prefab.
+- **Eikthyr and the Queen give nothing.** The Meadows have no metal, and the Mistlands' copper
+  and iron already belong to the Elder and Bonemass. `DoubleBosses` is the list of bosses that
+  can do it, and these two are not on it.
+- **Bloodgold is left out for now.** The Deep North's boss is not settled and Fader owns it in
+  `BossBiomes` only for the time being. `NeverDouble` holds it, and removing it from there is the
+  whole change once the Deep North has its own boss.
+- **It is the blow that counts.** The drop is doubled when the rock breaks or the creature
+  dies, never when you pick it up, and it goes to the player who dealt that blow. A friend who
+  mines while you stand by collects an ordinary stack even if you pick it up. In a group, the
+  player who breaks the chunk gets it.
+- **Malmr is the same.** A vein Malmr breaks is broken with a copy of the blow that filled the
+  bar, so the whole deposit doubles for the player whose swing filled it, even if a friend put
+  most of the bar in. Malmr needed no change for this.
+- **A client that does not own the rock is still covered.** The machine that owns the rock or
+  the corpse makes the drop, reads the attacker's kills out of the world's global keys, and
+  doubles it there. That machine has to run Vandi, which it does anyway, since everyone needs it.
+- **If the game cannot say who struck, nothing doubles.** The attacker is read off the blow. It is
+  missing when the player is not loaded on the owner's machine, or the blow was struck by
+  something that is not a player, such as a tamed creature. Vandi does not guess the nearest
+  player in that case, since that would hand one player's reward to another.
+- **A creature's metal is doubled in its drop list.** The game does not create a creature's
+  drops the way it creates a deposit's, so a fuling's scrap is doubled by doubling the count.
+
+This is a reward for the hardest summon and not a relief from a gate, which is why it lives here
+and not in Utangard. It does speed up gear, which pulls against the idea of not rushing. It only
+arrives after the third kill of a boss, and the surplus is something to hand to the group.
+
 ## The part that will start arguments
 
 Credit for a boss kill goes to the player who **made the offering**, and to nobody else. They
@@ -124,13 +165,16 @@ The file is `BepInEx/config/ezomic.valheim.vandi.cfg`, written on first run.
 | `BossBiomes` | the eight pairings | `boss:biome`, comma separated, spelled the same as Utangard and Vaettir spell it |
 | `HarderBosses` | true | A summoned boss you have killed before arrives with stars |
 | `BossStarCap` | 2 | The most stars a summoned boss can gain |
+| `DoubleAtKills` | 3 | Kills of a biome's boss needed for its metal to drop double for you. 0 is off |
+| `DoubleBosses` | the five with metal | Boss keys that can double their biome's metal. Eikthyr and the Queen are not on it |
+| `NeverDouble` | `BloodGoldOre, BloodGold` | Prefab names that never double, whatever the kills |
 
 On a server with Core the host's values apply to everyone, so these are the server's decision
 and not each player's.
 
 ## Testing
 
-`scenarios/` holds two Devkit scenarios. `vandi-stars-per-biome` goes to the nearest Meadows,
+`scenarios/` holds three Devkit scenarios, the first two below and `vandi-metal-doubles-at-three-kills`, which has not been run yet. It checks the verdict `vandi metal` prints at two kills and at three, and that the counter of doubled stacks moves only when a deposit breaks at three. What it cannot see is a second player breaking a deposit the first one owns. `vandi-stars-per-biome` goes to the nearest Meadows,
 reads the star roll there, seeds a record and checks how the roll moves at each step, including
 that a boss from another biome changes nothing. It measures first because the roll is not 10
 everywhere: in 1.0 a biome sector can carry a modifier that multiplies it, and in one Meadows

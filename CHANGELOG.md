@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- **A boss killed three times doubles the metal of its own biome, for you.** The third kill is
+  the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver for
+  Moder, black metal for Yagluth and flametal for Fader, worked out from what the furnace and
+  the blast furnace take in rather than listed. It follows the metal and not the place, so a
+  Mistlands copper deposit doubles for the Elder's player. Iron scrap, scrap piles and a fuling's
+  black metal scrap count, bars never do. Eikthyr and the Queen give nothing, and bloodgold waits
+  for the Deep North's boss. New settings `DoubleAtKills`, `DoubleBosses` and `NeverDouble`, and
+  `vandi metal` in the console.
+- **It happens when the drop is made, to the player whose blow made it.** Never on pickup, so a
+  friend cannot mine for you. A vein Malmr breaks goes to the player whose swing filled the bar.
+  The machine that owns the rock makes the decision from the world's global keys, so a client
+  that does not own it is covered. Not run in game yet.
+
 ## 1.0.0 - 2026-09-30
 
 First release. Both Devkit scenarios in `scenarios/` passed on 2026-09-29, and a two-player

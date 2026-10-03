@@ -22,6 +22,9 @@ namespace Vandi
 
         private static string _parsedFrom;
 
+        /// <summary>boss key -> the first biome the config lists it under, in BiomeIndex's spelling.</summary>
+        private static Dictionary<string, string> _firstBiome;
+
         /// <summary>
         /// The boss keys that own this biome, or null when nothing does.
         ///
@@ -35,6 +38,25 @@ namespace Vandi
 
             List<string> keys;
             return _byBiome.TryGetValue(biome, out keys) ? keys : null;
+        }
+
+        /// <summary>
+        /// The biome a boss key is listed under first, spelled the way BiomeIndex spells it
+        /// (lowercase, no spaces: blackforest, ashlands), or null for a key nobody mapped.
+        ///
+        /// BiomeIndex asks this to place a boss's own drops and to clamp key-gated spawn rows.
+        /// A boss that owns two biomes answers with the first one written, which is the home
+        /// biome in the default line (Bonemass the Swamp before the Ocean, Fader the Ashlands
+        /// before the Deep North).
+        /// </summary>
+        internal static string BiomeNameFor(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+
+            Parse();
+
+            string biome;
+            return _firstBiome.TryGetValue(key.ToLowerInvariant(), out biome) ? biome : null;
         }
 
         /// <summary>
@@ -84,6 +106,7 @@ namespace Vandi
 
             _parsedFrom = spec;
             _byBiome = new Dictionary<Heightmap.Biome, List<string>>();
+            _firstBiome = new Dictionary<string, string>();
 
             foreach (string entry in spec.Split(','))
             {
@@ -117,6 +140,7 @@ namespace Vandi
                 }
 
                 if (!keys.Contains(key)) keys.Add(key);
+                if (!_firstBiome.ContainsKey(key)) _firstBiome[key] = biome.ToString().ToLowerInvariant();
             }
         }
     }
