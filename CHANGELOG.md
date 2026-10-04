@@ -2,23 +2,33 @@
 
 ## Unreleased
 
-- **A boss killed three times doubles the metal of its own biome, for you.** The third kill is
-  the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver for
-  Moder, black metal for Yagluth and flametal for Fader, worked out from what the furnace and
-  the blast furnace take in rather than listed. It follows the metal and not the place, so a
-  Mistlands copper deposit doubles for the Elder's player. Iron scrap, scrap piles and a fuling's
-  black metal scrap count, bars never do. Eikthyr and the Queen give nothing, and bloodgold waits
-  for the Deep North's boss. New settings `DoubleAtKills`, `DoubleBosses` and `NeverDouble`, and
-  `vandi metal` in the console.
+- **A boss killed three times raises the metal of its own biome by half, for you.** The third
+  kill is the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver
+  for Moder, black metal for Yagluth, flametal and bloodgold for Fader, and the giant brains'
+  Softtissue (the Eitr refinery's input) for the Queen, worked out from what the furnaces take in
+  rather than listed. The bonus is x1.5, rounded up, so a stack of one becomes two. It follows the
+  metal and not the place, so a Mistlands copper deposit pays out for the Elder's player. Iron
+  scrap, scrap piles and a fuling's black metal scrap count, bars never do. Eikthyr gives nothing,
+  since the Meadows have no metal. New settings `DoubleAtKills`, `DoubleBosses` and `NeverDouble`
+  (the names predate the cut from x2 to x1.5 and stay, because saved files are keyed on them),
+  and `vandi metal` in the console.
+- **The Queen is in and bloodgold is in.** `DoubleBosses` now lists `defeated_queen`, and
+  `NeverDouble` is empty. Bloodgold is the prefab `GoldOre`: the old `BloodGoldOre, BloodGold`
+  entries named no prefab, so they never held anything back. The Deep North has no boss of its
+  own in `BossBiomes` yet, so Fader's kills raise bloodgold until it does.
+- **Existing config files keep their old values.** BepInEx writes every entry on first run and
+  the saved value beats a new default, so a profile whose `[Metal]` section is already on disk
+  keeps the old `DoubleBosses` (no Queen) and `NeverDouble` until the line is edited or deleted.
+  The x1.5 is in code and applies everywhere. No local profile had a `[Metal]` section yet.
 - **It happens when the drop is made, to the player whose blow made it.** Never on pickup, so a
   friend cannot mine for you. A vein Malmr breaks goes to the player whose swing filled the bar.
   The machine that owns the rock makes the decision from the world's global keys, so a client
   that does not own it is covered. Not run in game yet.
-- **A creature's metal doubles from its drop list, made when it dies.** Most creatures drop their
+- **A creature's metal is raised from its drop list, made when it dies.** Most creatures drop their
   loot from a ragdoll a moment after death, and the first version only looked while the creature
-  itself dropped, so a fuling's scrap almost never doubled. A blow that breaks a deposit inside
+  itself dropped, so a fuling's scrap almost never rose. A blow that breaks a deposit inside
   another (a scrap pile that spawns a rock) no longer ends the outer blow's credit, a drop that
-  fails to double is left as the game made it and logged once, and the metal list is built when
+  fails to rise is left as the game made it and logged once, and the metal list is built when
   the world loads instead of at the first drop.
 - **A Vandi page in the compendium.** It is the third entry, after Active Effects and Logs, so
   opening the compendium still lands where it always did. The left side lists
