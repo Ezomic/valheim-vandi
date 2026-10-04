@@ -8,23 +8,23 @@ using UnityEngine;
 namespace Vandi
 {
     /// <summary>
-    /// A boss you have killed enough times doubles the metal of its own biome, for you.
+    /// A boss you have killed enough times raises the metal of its own biome by half, for you.
     ///
     /// Three decisions carry it, each made so that a friend cannot launder the reward.
     ///
     /// - <b>When.</b> At the moment the drop is made, never when it is picked up. A deposit's
-    ///   drops come through ItemDrop.OnCreateNew, so the stack is doubled there, while the
-    ///   game still knows whose blow it was. Doubling at pickup would let a friend mine and
+    ///   drops come through ItemDrop.OnCreateNew, so the stack is raised there, while the
+    ///   game still knows whose blow it was. Raising it at pickup would let a friend mine and
     ///   you collect.
     /// - <b>Who.</b> The attacker on the blow that broke the chunk or killed the creature,
     ///   read off its HitData. OnCreateNew carries no attacker, so the three places that
     ///   create metal (MineRock5 and MineRock chunks, and Destructible scrap piles) open a
     ///   window around the call that sees the blow and close it again. A creature has no
     ///   window, see below. Malmr breaks a vein with a clone of the player's own blow, which keeps the
-    ///   attacker, so the player whose swing filled the bar gets the whole deposit doubled.
+    ///   attacker, so the player whose swing filled the bar gets the whole deposit raised.
     ///   When the attacker cannot be resolved on this machine (the player's object is not
     ///   loaded here, or the blow came from something that is not a player) nobody is
-    ///   credited and nothing doubles. The nearest player is deliberately not guessed at,
+    ///   credited and nothing is raised. The nearest player is deliberately not guessed at,
     ///   because the game can say who struck and a guess would hand one player's reward to
     ///   another.
     /// - <b>Where.</b> On whichever machine creates the drop, which is the owner of the rock or
@@ -35,28 +35,35 @@ namespace Vandi
     /// Which items are metal is derived, never listed: an input of a smelter that burns fuel,
     /// so the furnace and the blast furnace and not the windmill or the spinning wheel, placed
     /// in a biome by the shared BiomeIndex, whose boss is then the one that counts. Bars and
-    /// crafted items are outputs, so they never double.
+    /// crafted items are outputs, so they never rise.
     ///
     /// Creatures are the exception to "through OnCreateNew": CharacterDrop.DropItems writes the
-    /// item's fields itself and never calls it, so a creature's metal is doubled by doubling the
+    /// item's fields itself and never calls it, so a creature's metal is raised by scaling the
     /// count in its drop list instead. And not in a window around CharacterDrop.OnDeath: a
     /// creature whose Ragdoll has m_dropItems has its list made by Ragdoll.Setup through
     /// GenerateDropList during Character.OnDeath, with CharacterDrop's own drops switched off,
     /// and dropped seconds later by Ragdoll.SpawnLoot, when no blow is in sight. Both paths
     /// call GenerateDropList on the owner while Character.m_lastHit is still the killing
-    /// blow, so that is where the list is doubled.
+    /// blow, so that is where the list is raised.
     /// </summary>
     internal static class Metal
     {
         /// <summary>
         /// Pinned placements for the roots, as in Yoke. Iron scrap lives in crypts and is never
         /// placed by a table the game exposes, so without its pin it is unplaced and iron would
-        /// never double. The rest are here so a content mod cannot move them by adding a drop.
+        /// never rise. The rest are here so a content mod cannot move them by adding a drop.
         /// </summary>
         private const string Roots =
             "CopperOre:blackforest, TinOre:blackforest, IronScrap:swamp, SilverOre:mountain, "
             + "BlackMetalScrap:plains, FlametalOre:ashlands, FlametalOreNew:ashlands, "
             + "CopperScrap:blackforest, BronzeScrap:blackforest";
+
+        /// <summary>
+        /// 1.5 and not 2, his call on 2026-10-04: twice the metal pulled too hard against not rushing
+        /// gear. A stack is rounded UP, so a stack of one still becomes two and nothing ever drops
+        /// fewer than the game made. Not a setting: the name DoubleAtKills is already in saved files.
+        /// </summary>
+        private const float Multiplier = 1.5f;
 
         private static bool _open;
         private static long _credited;
@@ -69,7 +76,7 @@ namespace Vandi
         /// </summary>
         private static readonly Stack<KeyValuePair<bool, long>> Outer = new Stack<KeyValuePair<bool, long>>();
 
-        /// <summary>Stacks doubled since the game started. Read by `vandi metal`.</summary>
+        /// <summary>Stacks raised since the game started. Read by `vandi metal`.</summary>
         internal static int Doubled;
 
         private static readonly Dictionary<string, string> Placed = new Dictionary<string, string>();
@@ -103,7 +110,7 @@ namespace Vandi
             catch (Exception error)
             {
                 VandiPlugin.LogOnce("Vandi could not read the attacker of a blow, so that blow's metal "
-                    + "does not double: " + error);
+                    + "is not raised: " + error);
             }
         }
 
@@ -183,7 +190,7 @@ namespace Vandi
 
                 if (_lastHit == null)
                     VandiPlugin.LogOnce("Character.m_lastHit was not found, so a creature's metal "
-                        + "cannot be doubled. Scrap piles and deposits are not affected.");
+                        + "cannot be raised. Scrap piles and deposits are not affected.");
             }
 
             return _lastHit == null || character == null ? null : _lastHit.GetValue(character) as HitData;
@@ -218,8 +225,13 @@ namespace Vandi
 
         private static void DoubleFailed(Exception error)
         {
-            VandiPlugin.LogOnce("Doubling a metal drop failed, so that drop was left as the game made it: "
+            VandiPlugin.LogOnce("Raising a metal drop failed, so that drop was left as the game made it: "
                 + error);
+        }
+
+        private static int Scale(int count)
+        {
+            return (int)Math.Ceiling(count * Multiplier);
         }
 
         private static void Double(ItemDrop drop)
@@ -234,18 +246,18 @@ namespace Vandi
             ItemDrop.ItemData data = drop.m_itemData;
             int stack = data.m_stack;
             int ceiling = Math.Max(stack, data.m_shared.m_maxStackSize);
-            data.m_stack = Math.Min(stack * 2, ceiling);
+            data.m_stack = Math.Min(Scale(stack), ceiling);
             Doubled++;
 
             if (VandiConfig.Verbose.Value)
-                VandiPlugin.Log.LogInfo("Doubled " + name + " for player " + _credited + ": " + stack
+                VandiPlugin.Log.LogInfo("Raised " + name + " for player " + _credited + ": " + stack
                     + " became " + data.m_stack + ".");
         }
 
         /// <summary>
-        /// Doubles a creature's metal where its drop list is made. See the class summary for why
+        /// Raises a creature's metal where its drop list is made. See the class summary for why
         /// this is GenerateDropList and not DropItems. The attacker is read off the creature's
-        /// last blow, and nothing doubles when it is not a player on this machine.
+        /// last blow, and nothing is raised when it is not a player on this machine.
         /// </summary>
         [HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
         [HarmonyPostfix]
@@ -274,19 +286,19 @@ namespace Vandi
                     string why;
                     if (!Qualifies(id, Utils.GetPrefabName(entry.Key), out why)) continue;
 
-                    __result[i] = new KeyValuePair<GameObject, int>(entry.Key, entry.Value * 2);
+                    __result[i] = new KeyValuePair<GameObject, int>(entry.Key, Scale(entry.Value));
                     Doubled += entry.Value;
 
                     if (VandiConfig.Verbose.Value)
-                        VandiPlugin.Log.LogInfo("Doubled " + entry.Key.name + " for player " + id
-                            + ": " + entry.Value + " became " + entry.Value * 2 + ".");
+                        VandiPlugin.Log.LogInfo("Raised " + entry.Key.name + " for player " + id
+                            + ": " + entry.Value + " became " + Scale(entry.Value) + ".");
                 }
             }
             catch (Exception error) { DoubleFailed(error); }
         }
 
         /// <summary>
-        /// Whether this player's kills make this item drop double, and the reason when not.
+        /// Whether this player's kills raise this item's drop by half, and the reason when not.
         /// The one place the answer is worked out, so the drop and the console cannot differ.
         /// </summary>
         internal static bool Qualifies(long playerId, string prefab, out string why)
@@ -385,7 +397,7 @@ namespace Vandi
             try { BiomeIndex.Prepare(); }
             catch (Exception error)
             {
-                VandiPlugin.LogOnce("The biome index could not be built, so no metal doubles: " + error);
+                VandiPlugin.LogOnce("The biome index could not be built, so no metal is raised: " + error);
                 return false;
             }
 
@@ -476,10 +488,10 @@ namespace Vandi
         }
 
         /// <summary>
-        /// `vandi metal` lists every metal Vandi would double for you and why the others would
+        /// `vandi metal` lists every metal Vandi would raise for you and why the others would
         /// not, and `vandi metal CopperOre` answers for one prefab. Written for the scenario,
-        /// which reads the verdict and the doubled count, and for a player who wants to know
-        /// why a particular ore did not double.
+        /// which reads the verdict and the raised count, and for a player who wants to know
+        /// why a particular ore was not raised.
         /// </summary>
         internal static void Print(Terminal term, string[] words)
         {
@@ -488,9 +500,9 @@ namespace Vandi
 
             long id = player.GetPlayerID();
 
-            term.AddString("vandi metal: doubling at " + VandiConfig.DoubleAtKills.Value
+            term.AddString("vandi metal: x1.5 at " + VandiConfig.DoubleAtKills.Value
                 + " kills of the biome's boss (DoubleAtKills), for " + VandiConfig.DoubleBosses.Value);
-            term.AddString("vandi metal doubled=" + Doubled.ToString(CultureInfo.InvariantCulture)
+            term.AddString("vandi metal raised=" + Doubled.ToString(CultureInfo.InvariantCulture)
                 + " stacks since the game started");
 
             if (words.Length > 2)
@@ -517,7 +529,7 @@ namespace Vandi
             if (Ready()) biome = BiomeOfMetal(prefab, out ignore);
 
             term.AddString("vandi metal " + prefab + ": biome " + (biome ?? "none")
-                + ", doubled=" + (yes ? "yes" : "no") + " (" + why + ")");
+                + ", raised=" + (yes ? "yes" : "no") + " (" + why + ")");
         }
     }
 }

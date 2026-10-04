@@ -109,35 +109,43 @@ namespace Vandi
 
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which
-            // is the hardest fight the default gives and what the reward was asked for.
+            // is the hardest fight the default gives and what the reward was asked for. The
+            // setting names still say Double because saved config files and the host's synced
+            // values are keyed on them; the bonus itself is half as much again (x1.5).
             DoubleAtKills = cfg.Bind("Metal", "DoubleAtKills", 3,
                 "How many times you must have killed a biome's boss, as Vandi counts them, for the "
-                + "metal of that biome to drop double when YOU break the deposit or kill the "
-                + "creature. The default is the kill that was summoned at two stars. It does not "
-                + "move with BossStarCap or HarderBosses. 0 turns the whole thing off.\n"
-                + "Doubling follows the metal, not the place: copper is the Elder's metal wherever "
-                + "it drops, so a Mistlands deposit of copper doubles for the Elder's two star "
-                + "player and the Queen adds nothing to it. Iron scrap, the scrap piles and a "
+                + "metal of that biome to drop x1.5 (half as much again, rounded up, so a stack of "
+                + "one becomes two) when YOU break the deposit or kill the creature. The name says "
+                + "Double from before it was cut to 1.5. The default is the kill that was summoned "
+                + "at two stars. It does not move with BossStarCap or HarderBosses. 0 turns the "
+                + "whole thing off.\n"
+                + "It follows the metal, not the place: copper is the Elder's metal wherever "
+                + "it drops, so a Mistlands deposit of copper pays out for the Elder's two star "
+                + "player and the Queen adds nothing to it. The Queen has her own: the giant brains' "
+                + "Softtissue, which the Eitr refinery turns into Eitr. Iron scrap, the scrap piles and a "
                 + "fuling's black metal scrap count as their biome's metal. Bars and crafted items "
                 + "never do. The blow that breaks the rock or kills the creature decides who "
                 + "gets it, and in a group a deposit Malmr breaks goes to the player whose swing "
                 + "filled the bar. It happens when the drop is made, never on pickup, so a friend "
-                + "cannot mine for you and hand you doubled ore.");
+                + "cannot mine for you and hand you extra ore.");
 
             DoubleBosses = cfg.Bind("Metal", "DoubleBosses",
                 "defeated_gdking, defeated_bonemass, defeated_dragon, defeated_goblinking, "
-                + "defeated_fader",
-                "The boss keys whose biome's metal can drop double. Eikthyr and the Queen are left "
-                + "out: the Meadows have no metal, and the Mistlands' copper and iron are the "
-                + "Elder's and Bonemass's, so the Queen has nothing of her own to double. A key "
-                + "must also be listed in BossBiomes, which is where its biome comes from.");
+                + "defeated_queen, defeated_fader",
+                "The boss keys whose biome's metal can drop x1.5. Eikthyr is left out because the "
+                + "Meadows have no metal. The Queen is in, for the Softtissue the giant brains give "
+                + "(the Eitr refinery's input): the Mistlands' copper and iron are the Elder's and "
+                + "Bonemass's, so that is the one metal she owns. A key must also be listed in BossBiomes, which is where "
+                + "its biome comes from.");
 
-            NeverDouble = cfg.Bind("Metal", "NeverDouble", "BloodGoldOre, BloodGold",
-                "Prefab names that never drop double, even from a boss that is on the list. "
-                + "Bloodgold is here because the Deep North's boss is not settled: Fader owns it in "
-                + "BossBiomes for now, and doubling a metal for a boss that may turn out to be "
-                + "somebody else's is the sort of thing that cannot be taken back from a player. "
-                + "Remove it once the Deep North has its own boss.");
+            NeverDouble = cfg.Bind("Metal", "NeverDouble", "",
+                "Prefab names that never drop x1.5, even from a boss that is on the list. Empty "
+                + "by default. Bloodgold is in the bonus: it is the prefab GoldOre, which the blast "
+                + "furnace turns into Gold, and it follows whichever boss owns its biome in "
+                + "BossBiomes, Fader for now. Earlier builds held it back under the names BloodGoldOre "
+                + "and BloodGold, which are not prefabs and so held nothing back. A saved config "
+                + "file keeps its old value, so a profile that has already run those builds still "
+                + "lists them here until the line is edited, which is harmless.");
 
             // Personal, and declared so in the plugin: a switch for what one player's screen draws
             // is not the host's to take away, and Core would otherwise impose the server's copy of it.

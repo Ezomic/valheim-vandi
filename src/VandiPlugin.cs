@@ -93,7 +93,7 @@ namespace Vandi
             try { _harmony.PatchAll(typeof(Metal)); }
             catch (System.Exception error)
             {
-                Log.LogWarning("Metal doubling could not be fully patched and may be partly off, "
+                Log.LogWarning("The metal bonus could not be fully patched and may be partly off, "
                     + "since PatchAll applies the patches it reaches before the one that failed. "
                     + "The rest of Vandi is unaffected: " + error);
             }
