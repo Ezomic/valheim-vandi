@@ -82,9 +82,9 @@ namespace Vandi
             // every type in the DLL, so a half-written patch class in another file goes live
             // the moment it compiles.
             _harmony = new Harmony(PluginGuid);
-            _harmony.PatchAll(typeof(Stars));
-            _harmony.PatchAll(typeof(Summon));
-            _harmony.PatchAll(typeof(Kills.Readout));
+            PatchCore(typeof(Stars));
+            PatchCore(typeof(Summon));
+            PatchCore(typeof(Kills.Readout));
             Metal.Wire();
 
             // Fenced on its own: a drop method renamed by an update must cost the metal half and
@@ -107,6 +107,19 @@ namespace Vandi
             // The startup line every mod in the suite writes. It is how a log answers "which
             // build of what is actually loaded" without anyone guessing.
             Log.LogInfo(PluginName + " " + PluginVersion + " by " + PluginAuthor + " - ready.");
+        }
+
+        private void PatchCore(System.Type patch)
+        {
+            try
+            {
+                _harmony.PatchAll(patch);
+            }
+            catch (System.Exception error)
+            {
+                Log.LogError(patch.FullName + " could not be fully patched and may be partly off. "
+                    + "The other patches still apply. " + error);
+            }
         }
 
         private void PatchPage(System.Type patch)
@@ -178,7 +191,7 @@ namespace Vandi
             {
                 // An older Core has no Suite.Local. The switch is then the host's like every other
                 // entry, which is a worse default and not a broken mod.
-                Log.LogInfo("Core cannot keep ShowCompendiumPage personal (" + error.Message + ").");
+                Log.LogInfo("Core cannot keep ShowCompendiumPage and Verbose personal (" + error.Message + ").");
             }
 
             // If the mod reads a data file that decides what it does, hash it too. The gate
@@ -194,8 +207,9 @@ namespace Vandi
         }
 
         /// <summary>
-        /// What the compendium page draws is one player's own screen. Core syncs a mod's whole config
-        /// from the host unless told otherwise, so the switch is declared local. Its own method and
+        /// What the compendium page draws is one player's own screen, and the log flag is one
+        /// player's diagnostics. Core syncs a mod's whole config from the host unless told
+        /// otherwise, so both switches are declared local. Its own method and
         /// never inlined, for RegisterWithCore's reason one level down: an old Core without
         /// Suite.Local then fails this call, which the caller catches, rather than the JIT of
         /// RegisterWithCore and the version gate with it.
@@ -204,6 +218,7 @@ namespace Vandi
         private static void KeepPageLocal()
         {
             Suite.Local(VandiConfig.ShowCompendiumPage);
+            Suite.Local(VandiConfig.Verbose);
         }
 
         private void OnDestroy()

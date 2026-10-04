@@ -205,7 +205,8 @@ after it and while it is open, checking the numbers move and that no label is sq
 height. `vandi-compendium-malmr-line` seeds kills and checks the Malmr lines, and needs Malmr in
 the profile. Those last two, like the metal scenario, have been written and built but not yet run in game.
 
-The first two passed on 2026-09-28 and again on 2026-09-29, the second time at 43 and 25 steps. On
+`vandi-stars-per-biome` and `vandi-summoner-gets-the-credit` passed on 2026-09-28 and again on
+2026-09-29, the second time at 43 and 25 steps. On
 2026-09-30 a two-player run on a dedicated server, one client summoning and killing and the
 other standing by, credited each boss kill once, to the player who made the offering. The one
 standing by gained nothing, although on that run its machine owned both bosses and wrote the
