@@ -22,6 +22,9 @@ namespace Vandi
 
         private static string _parsedFrom;
 
+        /// <summary>boss key -> the first biome the config lists it under, in BiomeIndex's spelling.</summary>
+        private static Dictionary<string, string> _firstBiome;
+
         /// <summary>
         /// The boss keys that own this biome, or null when nothing does.
         ///
@@ -35,6 +38,25 @@ namespace Vandi
 
             List<string> keys;
             return _byBiome.TryGetValue(biome, out keys) ? keys : null;
+        }
+
+        /// <summary>
+        /// The biome a boss key is listed under first, spelled the way BiomeIndex spells it
+        /// (lowercase, no spaces: blackforest, ashlands), or null for a key nobody mapped.
+        ///
+        /// BiomeIndex asks this to place a boss's own drops and to clamp key-gated spawn rows.
+        /// A boss that owns two biomes answers with the first one written, which is the home
+        /// biome in the default line (Bonemass the Swamp before the Ocean, Fader the Ashlands
+        /// before the Deep North).
+        /// </summary>
+        internal static string BiomeNameFor(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+
+            Parse();
+
+            string biome;
+            return _firstBiome.TryGetValue(key.ToLowerInvariant(), out biome) ? biome : null;
         }
 
         /// <summary>
@@ -77,6 +99,114 @@ namespace Vandi
             return character == null ? null : KeyOf(character);
         }
 
+        /// <summary>
+        /// Every biome a boss can own, in the order the game walks them. The `vandi` console
+        /// command and the compendium page both list bosses by it, so the two read the same way.
+        /// </summary>
+        internal static readonly Heightmap.Biome[] Order =
+        {
+            Heightmap.Biome.Meadows, Heightmap.Biome.BlackForest, Heightmap.Biome.Swamp,
+            Heightmap.Biome.Mountain, Heightmap.Biome.Plains, Heightmap.Biome.Mistlands,
+            Heightmap.Biome.AshLands, Heightmap.Biome.DeepNorth, Heightmap.Biome.Ocean,
+        };
+
+        /// <summary>One boss Vandi counts, and every biome it owns, in progression order.</summary>
+        internal sealed class Boss
+        {
+            internal string Key;
+            internal List<Heightmap.Biome> Biomes = new List<Heightmap.Biome>();
+        }
+
+        /// <summary>
+        /// The bosses BossBiomes names, each once, in the order of the first biome it owns. A boss
+        /// that owns two, as Bonemass and Fader do by default, is one entry with two biomes, so
+        /// the page lists the fight once and says where its kills count.
+        /// </summary>
+        internal static List<Boss> Roster()
+        {
+            Parse();
+
+            List<Boss> roster = new List<Boss>();
+            Dictionary<string, Boss> byKey = new Dictionary<string, Boss>();
+
+            List<Heightmap.Biome> biomes = new List<Heightmap.Biome>(Order);
+            foreach (Heightmap.Biome biome in _byBiome.Keys)
+                if (!biomes.Contains(biome)) biomes.Add(biome);
+
+            foreach (Heightmap.Biome biome in biomes)
+            {
+                List<string> keys;
+                if (!_byBiome.TryGetValue(biome, out keys)) continue;
+
+                foreach (string key in keys)
+                {
+                    Boss boss;
+                    if (!byKey.TryGetValue(key, out boss))
+                    {
+                        boss = new Boss { Key = key };
+                        byKey[key] = boss;
+                        roster.Add(boss);
+                    }
+
+                    boss.Biomes.Add(biome);
+                }
+            }
+
+            return roster;
+        }
+
+        private static ZNetScene _namesFor;
+        private static readonly Dictionary<string, string> Names = new Dictionary<string, string>();
+
+        /// <summary>
+        /// What the player's own game calls the boss behind a defeat key: "The Elder" for
+        /// defeated_gdking. Read off the creature prefab that sets the key, preferring one the game
+        /// marks m_boss, since a bat sets a key too. The key itself when nothing in this world
+        /// sets it, so a mistyped BossBiomes entry shows as exactly what was typed.
+        /// </summary>
+        internal static string NameOf(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return "";
+
+            ZNetScene scene = ZNetScene.instance;
+            if (scene == null) return key;
+
+            if (!ReferenceEquals(scene, _namesFor))
+            {
+                _namesFor = scene;
+                Names.Clear();
+
+                Dictionary<string, Character> chosen = new Dictionary<string, Character>();
+                foreach (GameObject prefab in scene.m_prefabs)
+                {
+                    if (prefab == null) continue;
+
+                    Character character;
+                    if (!prefab.TryGetComponent(out character)) continue;
+
+                    string defeat = KeyOf(character);
+                    if (defeat == null) continue;
+
+                    Character held;
+                    if (!chosen.TryGetValue(defeat, out held) || (character.m_boss && !held.m_boss))
+                        chosen[defeat] = character;
+                }
+
+                foreach (KeyValuePair<string, Character> pair in chosen)
+                {
+                    string token = pair.Value.m_name;
+                    string text = string.IsNullOrEmpty(token) || Localization.instance == null
+                        ? null
+                        : Localization.instance.Localize(token);
+
+                    if (!string.IsNullOrEmpty(text)) Names[pair.Key] = text;
+                }
+            }
+
+            string name;
+            return Names.TryGetValue(key, out name) ? name : key;
+        }
+
         private static void Parse()
         {
             string spec = VandiConfig.BossBiomes.Value ?? "";
@@ -84,6 +214,7 @@ namespace Vandi
 
             _parsedFrom = spec;
             _byBiome = new Dictionary<Heightmap.Biome, List<string>>();
+            _firstBiome = new Dictionary<string, string>();
 
             foreach (string entry in spec.Split(','))
             {
@@ -117,6 +248,7 @@ namespace Vandi
                 }
 
                 if (!keys.Contains(key)) keys.Add(key);
+                if (!_firstBiome.ContainsKey(key)) _firstBiome[key] = biome.ToString().ToLowerInvariant();
             }
         }
     }

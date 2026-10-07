@@ -102,13 +102,8 @@ namespace Vandi
             // turning HarderBosses off must not also stop anyone earning anything.
             nview.GetZDO().Set(SummonerKey, summoner);
 
-            if (!VandiConfig.HarderBosses.Value) return;
-
             int kills = Kills.Count(summoner, boss);
-            if (kills <= 0) return;
-
-            int cap = VandiConfig.BossStarCap.Value;
-            int stars = kills > cap ? cap : kills;
+            int stars = StarsFor(kills);
             if (stars <= 0) return;
 
             // Level, not stars: the game counts level 1 as a plain creature, so two stars is
@@ -118,6 +113,21 @@ namespace Vandi
 
             VandiPlugin.Log.LogInfo("Summoned " + boss + " at " + stars + " star(s) for player "
                 + summoner + ", who has killed it " + kills + " time(s).");
+        }
+
+        /// <summary>
+        /// The stars a boss comes back with for a summoner who has killed it this many times: one
+        /// per kill, held at BossStarCap, and none while HarderBosses is off. Its own method so the
+        /// compendium page reads the number the altar uses.
+        /// </summary>
+        internal static int StarsFor(int kills)
+        {
+            if (!VandiConfig.HarderBosses.Value || kills <= 0) return 0;
+
+            int cap = VandiConfig.BossStarCap.Value;
+            int stars = kills > cap ? cap : kills;
+
+            return stars < 0 ? 0 : stars;
         }
 
         /// <summary>What Dying saw on the boss, handed to Died through Harmony's __state.</summary>

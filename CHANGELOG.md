@@ -1,5 +1,57 @@
 # Changelog
 
+## Unreleased
+
+- **A boss killed three times raises the metal of its own biome by half, for you.** The third
+  kill is the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver
+  for Moder, black metal for Yagluth, flametal and bloodgold for Fader, and the giant brains'
+  Softtissue (the Eitr refinery's input) for the Queen, worked out from what the furnaces take in
+  rather than listed. The bonus is x1.5, rounded up, so a stack of one becomes two. It follows the
+  metal and not the place, so a Mistlands copper deposit pays out for the Elder's player. Iron
+  scrap, scrap piles and a fuling's black metal scrap count, bars never do. Eikthyr gives nothing,
+  since the Meadows have no metal. New settings `DoubleAtKills`, `DoubleBosses` and `NeverDouble`
+  (the names predate the cut from x2 to x1.5 and stay, because saved files are keyed on them),
+  and `vandi metal` in the console.
+- **The Queen is in and bloodgold is in.** `DoubleBosses` now lists `defeated_queen`, and
+  `NeverDouble` is empty. Bloodgold is the prefab `GoldOre`: the old `BloodGoldOre, BloodGold`
+  entries named no prefab, so they never held anything back. The Deep North has no boss of its
+  own in `BossBiomes` yet, so Fader's kills raise bloodgold until it does.
+- **Existing config files keep their old values.** BepInEx writes every entry on first run and
+  the saved value beats a new default, so a profile whose `[Metal]` section is already on disk
+  keeps the old `DoubleBosses` (no Queen) and `NeverDouble` until the line is edited or deleted.
+  The x1.5 is in code and applies everywhere. No local profile had a `[Metal]` section yet.
+- **It happens when the drop is made, to the player whose blow made it.** Never on pickup, so a
+  friend cannot mine for you. A vein Malmr breaks goes to the player whose swing filled the bar.
+  The machine that owns the rock makes the decision from the world's global keys, so a client
+  that does not own it is covered. Not run in game yet.
+- **A creature's metal is raised from its drop list, made when it dies.** Most creatures drop their
+  loot from a ragdoll a moment after death, and the first version only looked while the creature
+  itself dropped, so a fuling's scrap almost never rose. A blow that breaks a deposit inside
+  another (a scrap pile that spawns a rock) no longer ends the outer blow's credit, a drop that
+  fails to rise is left as the game made it and logged once, and the metal list is built when
+  the world loads instead of at the first drop.
+- **A Vandi page in the compendium.** It is the third entry, after Active Effects and Logs, so
+  opening the compendium still lands where it always did. The left side lists
+  every boss Vandi counts, grouped by biome, with your own kill count on each. Pick one and the
+  right side shows what each kill adds to the star chance in its biome, which kill the boss
+  comes back with a star on, the stars the next summon will have, and where you stand on the
+  ladder. Either side scrolls on its own, with the compendium's scrollbar, when it is taller than
+  the window. Every figure comes from the same functions the star roll and the altar use, so the page
+  cannot say something the world does not do. `ShowCompendiumPage` in the config turns it off,
+  and it stays each player's own setting under Core.
+- **Malmr's unlocks show on it.** With Malmr installed, a boss that gates one of its metals says
+  what that metal is waiting for: how many more kills, the Pickaxes level, or that it is open. The
+  other bosses that still gate a metal are listed under The road ahead. Without Malmr there is no
+  Malmr line and nothing else changes. Vandi reads Malmr's own table and gate for this by
+  reflection, so the two stay in step, and a Malmr it cannot read costs only those lines. It is
+  read once each time the page is opened, a failed read is tried again after a few seconds, and
+  only the third in a row, or a Malmr that lacks a member the page needs, ends it for the session.
+- Two Devkit scenarios: `vandi-compendium-page` makes a real kill at an altar and checks the
+  page's numbers move, and `vandi-compendium-malmr-line` checks the Malmr lines against seeded
+  kills. Both include the `tall` checks that catch a label squeezed to no height.
+- The page is built only from code, with no bundle asset, and is rebuilt for every new compendium.
+  Its only borrowed look is a copy of the compendium's scrollbar. It was written without being run in game; the first look is the first test.
+
 ## 1.0.0 - 2026-09-30
 
 First release. Both Devkit scenarios in `scenarios/` passed on 2026-09-29, and a two-player

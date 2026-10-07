@@ -1,0 +1,121 @@
+#! nostage
+# Vandi - the compendium page shows your kills and moves with them. LHM-45.
+#
+# What it proves. The compendium has a Vandi page, drawn as a panel: a list of bosses by biome on
+# the left and the one you pick on the right. With no kill on the record the Meadows boss reads
+# "not killed yet", +0% starred creatures and a boss that comes back with no stars. After a real
+# kill, made through the altar so the credit is the summoner's, the same page reads one kill, +5%,
+# and one star on the next summon. And it keeps up while it is open: the record is moved to three
+# kills with the page showing and the numbers follow within its one-second refresh, ending at the
+# star cap with "The cap, so it stays 2".
+#
+# Every figure on the page is the figure the world uses: Kills.LocalCount, Stars.Earned and
+# Summon.StarsFor, the same functions the star roll and the altar call. So this file also holds the
+# page to the keyis check on the record the kill wrote. The page is read through the labels it
+# draws, never through Vandi's own code.
+#
+# The `tall` steps are the guard that matters most on this page. On 2026-09-29 Utangard's panel,
+# built the same way, drew every text at no height on top of the others after the compendium's text
+# was blanked, and every string was still present, so a `panel` step passed over it. `tall` measures
+# the label against the text it holds. They run on the first look and again after a refresh, since
+# the first draw is a different frame from the one that went wrong.
+#
+# It brings its own altar, like vandi-summoner-gets-the-credit, and for the same reasons: NO STAGE,
+# stand anywhere with a little open ground ahead, the Meadows is simplest, and start it from
+# somewhere nothing has levelled when the altar's ground matters.
+#
+# What it needs. A world you host, the game in English (the boss and biome names are clicked and
+# read by their English names), ShowCompendiumPage on, and Vandi's default StarChancePerKill 5,
+# StarChanceCap 25, BossStarCap 2 and HarderBosses on. The page opens on the Meadows boss because the
+# first `location` leaves you standing in the Meadows; Eikthyr is clicked either way.
+#
+# What it leaves behind. The record for Eikthyr is removed at the end, as vandi-stars-per-biome does.
+# Nothing else outlives the run: the altar goes on the next load, and the kill is the one Eikthyr
+# this run summoned.
+
+clear
+god
+ghost
+
+unkey vandi_p_$player_defeated_eikthyr
+wait 1
+
+location Eikthyrnir
+wait 3
+
+# No Eikthyr but the one this run summons, for the reason vandi-summoner-gets-the-credit gives.
+banish Eikthyr 80
+
+# The page before any kill.
+compendium
+wait 1
+press Vandi
+wait 1
+press Eikthyr
+wait 1
+panel The Meadows, Eikthyr yes
+panel You have not killed Eikthyr yet yes
+beside Starred creatures now | +0% yes
+beside Next summon comes back at | no stars yes
+beside Next summon comes back at | The next kill makes it 1 star yes
+panel Kill 1 yes
+panel Kill 5 yes
+panel Kill 6 no
+
+tall The Meadows, Eikthyr
+tall Meadows
+tall Eikthyr
+tall Starred creatures now
+tall Next summon comes back at
+tall Kill 1
+tall Boss, by biome (your kills)
+close
+
+# A real kill, through the altar: the offering says who paid, and the corpse credits them.
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 20
+kill Eikthyr
+wait 3
+keyis vandi_p_$player_defeated_eikthyr 1
+
+# The same page, a kill later.
+compendium
+wait 1
+press Vandi
+wait 1
+press Eikthyr
+wait 1
+panel You have killed Eikthyr 1 time. yes
+beside Starred creatures now | +5% yes
+beside Starred creatures now | Next kill: +10% yes
+beside Next summon comes back at | 1 star yes
+beside Next summon comes back at | The next kill makes it 2 stars yes
+
+tall The Meadows, Eikthyr
+tall Starred creatures now
+tall Next summon comes back at
+tall Kill 1
+
+# Moved while the page stays open: three kills is +15%, and one more is the cap on the boss.
+key vandi_p_$player_defeated_eikthyr 3
+wait 2
+panel You have killed Eikthyr 3 times. yes
+beside Starred creatures now | +15% yes
+beside Starred creatures now | Next kill: +20% yes
+beside Next summon comes back at | 2 stars yes
+beside Next summon comes back at | The cap, so it stays 2 yes
+
+tall The Meadows, Eikthyr
+tall Starred creatures now
+tall Next summon comes back at
+
+# Five kills is the cap on the star chance too, and nothing more can be added.
+key vandi_p_$player_defeated_eikthyr 5
+wait 2
+beside Starred creatures now | +25% yes
+beside Starred creatures now | Already the most it gives yes
+close
+
+unkey vandi_p_$player_defeated_eikthyr

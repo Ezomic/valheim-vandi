@@ -1,0 +1,83 @@
+# Vandi - the compendium page shows what Malmr has tied to a boss. LHM-45.
+#
+# What it proves. With Malmr installed, the page says for the Black Forest boss what its copper
+# veins are waiting for, in the order a player meets it: two more kills while none is on the record,
+# the next kill after one, "open" at the second, and "waits for Pickaxes" when the kill is done and
+# the skill is not. It also lists, under "The road ahead", the other bosses whose metals are still
+# waiting, with the wording the mockup has. Every one of those lines comes from Malmr's own gate
+# through MalmrLink, so this is the file that notices Malmr moving a member the page reads.
+#
+# The kills are seeded with `key` rather than fought. This is a test of what the page draws.
+# vandi-compendium-page does the real kill through the altar, and Malmr's own scenarios test its gate.
+#
+# What it needs. Malmr in the profile at its defaults: Unlocks Copper:30 and Silver:50 and Eitr:60,
+# Bosses Copper on defeated_gdking, Silver on defeated_dragon and Eitr on defeated_queen, BossKills 2,
+# and Vandi installed so the count is Vandi's. The game in English. Without Malmr the Black Forest
+# page has no Malmr box at all, which is correct and which this file would report as a failure on
+# its first panel step, so run it only where Malmr is.
+#
+# What it leaves behind. The Pickaxes skill is put back with `skill Pickaxes back`, and the three
+# records are removed.
+
+clear
+god
+ghost
+
+skill Pickaxes 35
+unkey vandi_p_$player_defeated_gdking
+unkey vandi_p_$player_defeated_dragon
+unkey vandi_p_$player_defeated_queen
+wait 1
+
+compendium
+wait 1
+press Vandi
+wait 1
+press The Elder
+wait 1
+
+# No kill yet: two to go, and the level is already met.
+panel Malmr, tied to this boss yes
+panel 2 more kills open Copper vein mining yes
+panel Needs a one-star kill of The Elder, your second, and Pickaxes 30 yes
+panel The road ahead yes
+panel Moder: never killed, first kill opens nothing yet, the second opens Silver yes
+panel The Queen: never killed, first kill opens nothing yet, the second opens Giant brains yes
+tall Malmr, tied to this boss
+tall The road ahead
+tall 2 more kills open Copper vein mining
+
+# One kill: the next one opens it.
+key vandi_p_$player_defeated_gdking 1
+wait 2
+panel The next kill opens Copper vein mining yes
+
+# Two kills, the one-star kill: open, and the line says what it took.
+key vandi_p_$player_defeated_gdking 2
+wait 2
+panel Copper vein mining is open yes
+panel Needed Pickaxes 30 and a one-star kill of The Elder, your second yes
+tall Copper vein mining is open
+
+# The kill is done and the skill is not.
+skill Pickaxes 20
+wait 2
+panel Copper vein mining waits for Pickaxes 30 yes
+panel You are at Pickaxes 20 yes
+
+# Moder, once killed, is one more kill from silver, and the line carries the skill it also needs.
+key vandi_p_$player_defeated_dragon 1
+wait 2
+panel Moder: one more kill opens Silver (Pickaxes 50) yes
+tall The road ahead
+
+# A boss Malmr ties nothing to has no Malmr box. Yagluth owns the Plains and no entry waits for him.
+press Yagluth
+wait 1
+panel Malmr, tied to this boss no
+close
+
+skill Pickaxes back
+unkey vandi_p_$player_defeated_gdking
+unkey vandi_p_$player_defeated_dragon
+unkey vandi_p_$player_defeated_queen
