@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - 2026-10-08
 
 - **A boss killed three times raises the metal of its own biome by half, for you.** The third
   kill is the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver
