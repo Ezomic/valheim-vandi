@@ -1,0 +1,57 @@
+#! nostage
+# Vandi - CountGameKills: the count is the game's own, not the mod's record in the world's keys.
+#
+# Why it exists. A player running World Advancement Progression with its default BlockAllGlobalKeys
+# never saw a Vandi kill count, because that mod refuses every global key Vandi writes its record
+# into. The game files its own tally of kills in the character, under the creature's name, and no
+# such mod touches it. CountGameKills reads that instead.
+#
+# What it needs. CountGameKills = true in Vandi's cfg for the run. The first step reads the `vandi`
+# readout and fails at once if the setting is off, naming it, because every later step would
+# otherwise report a different failure for a file that was simply run with the wrong config.
+# It brings its own altar like vandi-summoner-gets-the-credit, so stand on open Meadows ground.
+#
+# What it proves, in order: the readout says the game's count is in use; a summoned Eikthyr killed
+# once moves that count by exactly one, read back through Kills.Count and so through the same
+# method the star roll and the compendium page ask; Vandi's own record for the kill is not
+# written (no "credited to player" line), which is the point of the setting.
+#
+# What it cannot do. It cannot block the keys the way World Advancement Progression does, so it
+# does not prove the fix holds under that mod. It proves the count Vandi reads is the game's, and
+# the game's is the one such a mod leaves alone.
+#
+# What it leaves behind. The character's kill tally stays one higher, which is the game's own and
+# not this file's to take back. It does not use `tally`, which rewrites the character's record.
+
+clear
+god
+ghost
+
+console vandi
+printed CountGameKills is on yes
+
+# The count before, read rather than assumed. A character that has played any world has killed
+# Eikthyr before, and the game's tally is per character across every world.
+note vandi defeated_eikthyr=(\d+)
+wait 1
+
+location Eikthyrnir
+wait 3
+
+# No Eikthyr but the one this run summons.
+banish Eikthyr 80
+give TrophyDeer:2
+wait 1
+
+offer TrophyDeer
+wait 20
+
+kill Eikthyr
+wait 3
+
+# One more, as the game counts it.
+console vandi
+went vandi defeated_eikthyr=(\d+) +1
+
+# And nothing written to the world's record for it: this is the line the other mode logs.
+logged credited to player no
