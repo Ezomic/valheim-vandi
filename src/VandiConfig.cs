@@ -21,6 +21,7 @@ namespace Vandi
     {
         internal static ConfigEntry<bool> Enabled;
         internal static ConfigEntry<bool> Verbose;
+        internal static ConfigEntry<bool> CountGameKills;
 
         internal static ConfigEntry<float> StarChancePerKill;
         internal static ConfigEntry<float> StarChanceCap;
@@ -49,6 +50,24 @@ namespace Vandi
                 "Write every star roll this changes, and every kill it credits, to "
                 + "BepInEx/LogOutput.log. Off unless something looks wrong; a busy zone "
                 + "rolls this many times a second.");
+
+            // Added 2026-10-12 after a player's kills never counted under World Advancement
+            // Progression, whose default BlockAllGlobalKeys refuses every key this mod writes its
+            // record into and whose private keys answer reads from the character instead. The game
+            // keeps its own per-character tally of kills by creature name in the player profile,
+            // which no mod there touches, so this reads that instead of the mod's keys.
+            CountGameKills = cfg.Bind("Vandi", "CountGameKills", false,
+                "Count a boss as killed by the number the game itself keeps for your character "
+                + "(the kill count behind the boss entries in your character stats) instead of "
+                + "the record this mod writes into the world. Turn it on if you run a mod that "
+                + "blocks or hides world keys, such as World Advancement Progression with "
+                + "BlockAllGlobalKeys on, and the kills otherwise never move. What changes: the "
+                + "game counts every time you took part in a kill, not only bosses you called at "
+                + "an altar yourself, and it counts per character across every world, so a "
+                + "character that has killed Eikthyr before starts with those kills. The star "
+                + "boost for a boss you summon also assumes you are the one who made the "
+                + "offering, which is only certain when you are the only player on the world, so "
+                + "leave this off on a shared server.");
 
             // Percentage points added to the game's own roll, not a multiplier. A multiplier
             // would make the first kill worth almost nothing and the fifth worth a great deal,

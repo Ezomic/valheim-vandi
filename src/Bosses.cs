@@ -157,6 +157,20 @@ namespace Vandi
 
         private static ZNetScene _namesFor;
         private static readonly Dictionary<string, string> Names = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> Tokens = new Dictionary<string, string>();
+
+        /// <summary>
+        /// The creature's own m_name token ("$enemy_eikthyr") behind a defeat key, which is the key
+        /// the game files its per-character kill count under. Null when nothing in this world sets
+        /// the key. Built by the same pass as NameOf.
+        /// </summary>
+        internal static string TokenOf(string key)
+        {
+            NameOf(key);
+
+            string token;
+            return Tokens.TryGetValue(key ?? "", out token) ? token : null;
+        }
 
         /// <summary>
         /// What the player's own game calls the boss behind a defeat key: "The Elder" for
@@ -175,6 +189,7 @@ namespace Vandi
             {
                 _namesFor = scene;
                 Names.Clear();
+                Tokens.Clear();
 
                 Dictionary<string, Character> chosen = new Dictionary<string, Character>();
                 foreach (GameObject prefab in scene.m_prefabs)
@@ -195,6 +210,7 @@ namespace Vandi
                 foreach (KeyValuePair<string, Character> pair in chosen)
                 {
                     string token = pair.Value.m_name;
+                    if (!string.IsNullOrEmpty(token)) Tokens[pair.Key] = token;
                     string text = string.IsNullOrEmpty(token) || Localization.instance == null
                         ? null
                         : Localization.instance.Localize(token);

@@ -89,6 +89,7 @@ namespace Vandi
             if (boss == null) return;
 
             long summoner = Summoner(boss);
+            if (summoner == 0L) summoner = AloneAs();
             if (summoner == 0L) return;
 
             Character character = JustSpawned(___m_bossSpawnPoint, boss);
@@ -201,6 +202,14 @@ namespace Vandi
         {
             if (!__runOriginal || !__state.Owner) return;
 
+            if (VandiConfig.CountGameKills.Value)
+            {
+                if (VandiConfig.Verbose.Value)
+                    VandiPlugin.Log.LogInfo(__state.Boss + " died; the game's own kill count is in use, so nothing is written.");
+
+                return;
+            }
+
             string boss = __state.Boss;
             long summoner = __state.Summoner;
             if (summoner == 0L)
@@ -219,6 +228,22 @@ namespace Vandi
 
             VandiPlugin.Log.LogInfo(boss + " credited to player " + summoner + ", now " + count
                 + " kill(s).");
+        }
+
+        /// <summary>
+        /// Who made the offering when the world's note for it is missing and the game's own count
+        /// is in use: the local player, but only when nobody else is on the world. A mod that
+        /// blocks world keys is why the note is missing, and with other players around this
+        /// machine cannot know whose offering it was.
+        /// </summary>
+        private static long AloneAs()
+        {
+            if (!VandiConfig.CountGameKills.Value) return 0L;
+
+            Player local = Player.m_localPlayer;
+            if (local == null || ZNet.instance == null || ZNet.instance.GetNrOfPlayers() > 1) return 0L;
+
+            return local.GetPlayerID();
         }
 
         /// <summary>The player id on the world's note for this boss, or 0 when there is none.</summary>

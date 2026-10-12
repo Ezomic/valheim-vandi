@@ -38,6 +38,12 @@ namespace Vandi
             ZoneSystem zone = ZoneSystem.instance;
             if (zone == null || string.IsNullOrEmpty(bossKey)) return 0;
 
+            // The game's own tally can only be read for the character on this machine, so any
+            // other player's count still comes from the world's record.
+            Player local = Player.m_localPlayer;
+            if (VandiConfig.CountGameKills.Value && local != null && local.GetPlayerID() == playerId)
+                return GameCount(bossKey);
+
             string value;
             if (!zone.GetGlobalKey(Key(playerId, bossKey), out value)) return 0;
 
@@ -46,6 +52,27 @@ namespace Vandi
             return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out count)
                 ? (count < 0 ? 0 : count)
                 : 0;
+        }
+
+        /// <summary>
+        /// How many times this character has killed the boss behind a defeat key, as the game
+        /// counts it in the player profile: RPC_RegisterKill files one under the creature's
+        /// m_name for every player on the attackers list when it dies. Index 0 is the raw tally,
+        /// the one that counts whatever the difficulty. It lives in the character file, so a mod
+        /// that blocks or hides world keys cannot touch it.
+        /// </summary>
+        internal static int GameCount(string bossKey)
+        {
+            string token = Bosses.TokenOf(bossKey);
+            if (token == null || Game.instance == null) return 0;
+
+            PlayerProfile profile = Game.instance.GetPlayerProfile();
+            if (profile == null) return 0;
+
+            float value;
+            if (!profile.m_playerStats[0].m_enemyStats[0].TryGetValue(token, out value)) return 0;
+
+            return value < 0f ? 0 : (int)value;
         }
 
         /// <summary>The local player's own count, or zero before there is a local player.</summary>
@@ -69,6 +96,9 @@ namespace Vandi
         {
             ZoneSystem zone = ZoneSystem.instance;
             if (zone == null || string.IsNullOrEmpty(bossKey)) return 0;
+
+            // The game counts the kill itself, so there is nothing to write.
+            if (VandiConfig.CountGameKills.Value) return Count(playerId, bossKey);
 
             int next = Count(playerId, bossKey) + 1;
 
@@ -143,7 +173,9 @@ namespace Vandi
                 term.AddString("vandi: " + player.GetPlayerName() + ", id "
                     + id.ToString(CultureInfo.InvariantCulture)
                     + ", enabled=" + (VandiConfig.Enabled.Value ? "yes" : "no")
-                    + "   (kills of a boss you summoned at an altar, as this world has recorded them)");
+                    + (VandiConfig.CountGameKills.Value
+                        ? "   (kills as the game counts them for this character, CountGameKills is on)"
+                        : "   (kills of a boss you summoned at an altar, as this world has recorded them)"));
 
                 // A boss may own two biomes, as Bonemass and Fader do by default, and is listed once.
                 HashSet<string> shown = new HashSet<string>();

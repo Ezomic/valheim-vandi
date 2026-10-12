@@ -2,6 +2,13 @@
 
 ## 1.1.0 - 2026-10-08
 
+- **New setting `CountGameKills`, for worlds where a mod hides the world's keys.** Vandi keeps
+  its kill record in the world's global keys, and World Advancement Progression's default
+  `BlockAllGlobalKeys` refuses every one of them, so a player running it saw his boss kills
+  never move. With the setting on, Vandi reads the count the game keeps for your character
+  instead, which no such mod touches. The trade: the game counts every kill you took part in and
+  keeps the count across worlds, and the star boost for a summon assumes you made the offering,
+  which is only certain when you are alone on the world. Off by default.
 - **A boss killed three times raises the metal of its own biome by half, for you.** The third
   kill is the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver
   for Moder, black metal for Yagluth, flametal and bloodgold for Fader, and the giant brains'

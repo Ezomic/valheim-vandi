@@ -177,6 +177,7 @@ The file is `BepInEx/config/ezomic.valheim.vandi.cfg`, written on first run.
 | --- | --- | --- |
 | `Enabled` | true | Off leaves the plugin loaded and changing nothing |
 | `Verbose` | false | Log every roll this changes and every kill it credits |
+| `CountGameKills` | false | Count the kills the game keeps for your character instead of this mod's record. For worlds where a mod blocks or hides global keys, such as World Advancement Progression with `BlockAllGlobalKeys` on. Counts every kill you took part in, across worlds; meant for a world you play alone |
 | `StarChancePerKill` | 5 | Percentage points added per kill of that biome's boss, on top of the game's own roll there |
 | `StarChanceCap` | 25 | The most that can be added, whatever the count |
 | `BossBiomes` | the eight pairings | `boss:biome`, comma separated, spelled the same as Utangard and Vaettir spell it |
