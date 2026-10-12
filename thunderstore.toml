@@ -7,7 +7,7 @@ schemaVersion = "0.0.1"
 [package]
 namespace = "Ezomic"
 name = "Vandi"
-versionNumber = "1.1.0"
+versionNumber = "1.1.1"
 description = "Creatures wear more stars in a biome whose boss you keep killing, and that boss comes back harder."
 websiteUrl = "https://github.com/Ezomic/valheim-vandi"
 containsNsfwContent = false
