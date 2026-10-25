@@ -50,4 +50,36 @@ screenshot
 # near him is never exactly three. The Verbose log line "Boss special: skeleton n/3 thrown" is the
 # evidence, and the shots above show the rear-up.
 
+# Killing the adds chips the boss. Only the three thrown ones carry the mark, so the log says how
+# many chips landed (the kill step takes the nearest skeleton each time, boss's own included) ("Boss add died"), and the total stops at AddChipCapPercent of the bar.
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+kill Skeleton 80
+wait 0.3
+wait 2
+
 unkey vandi_p_$player_defeated_bonemass

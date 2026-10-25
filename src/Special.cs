@@ -25,7 +25,7 @@ namespace Vandi
     /// </summary>
     internal sealed class FanSpecial : MonoBehaviour
     {
-        internal static readonly int AddKey = "vandi_boss_add".GetStableHashCode();
+        internal const string AddKey = "vandi_boss_add";
 
         private const string Skeleton = "Skeleton";
 
@@ -139,7 +139,7 @@ namespace Vandi
             GameObject thrown = Object.Instantiate(prefab, from, Quaternion.LookRotation(dir));
 
             ZNetView view = thrown.GetComponent<ZNetView>();
-            if (view != null && view.IsValid()) view.GetZDO().Set(AddKey, _nview.GetZDO().m_uid.ID);
+            if (view != null && view.IsValid()) view.GetZDO().Set(AddKey, _nview.GetZDO().m_uid);
 
             CharacterDrop drops = thrown.GetComponent<CharacterDrop>();
             if (drops != null) drops.SetDropsEnabled(false);
@@ -178,6 +178,82 @@ namespace Vandi
 
             if (VandiConfig.Verbose.Value)
                 VandiPlugin.Log.LogInfo("Boss special: attached to " + __instance.name + ".");
+        }
+    }
+
+    /// <summary>
+    /// A boss's own adds hurt it when they die, up to a cap.
+    ///
+    /// The kill is seen by the add's owner, in a prefix, because by the time a postfix runs the
+    /// owner's ZDO is gone (the same reason Summon.Dying is a prefix). But the boss may be owned by
+    /// a different machine, and only a boss's owner may write its health or its running total, so
+    /// the add's owner sends the boss's owner a routed message and that machine does the chip. In
+    /// singleplayer the two are the same machine and the message is to itself.
+    ///
+    /// <b>The total is capped.</b> What adds take off is held to AddChipCap of the bar, whatever
+    /// the count, so the adds are a way to shorten the fight and never a way around it. The
+    /// total is kept on the boss's own ZDO so it survives a change of owner.
+    /// </summary>
+    internal static class BossAdds
+    {
+        private const string ChipRpc = "Vandi_Chip";
+        private const string ChippedKey = "vandi_chipped";
+
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        [HarmonyPostfix]
+        private static void Register()
+        {
+            if (ZRoutedRpc.instance != null)
+                ZRoutedRpc.instance.Register<ZDOID, float>(ChipRpc, Chip);
+        }
+
+        [HarmonyPatch(typeof(Character), "OnDeath")]
+        [HarmonyPrefix]
+        private static void Dying(Character __instance)
+        {
+            if (!VandiConfig.Enabled.Value || !VandiConfig.BossSpecials.Value || __instance == null) return;
+
+            ZNetView nview = __instance.GetComponent<ZNetView>();
+            if (nview == null || !nview.IsValid() || !nview.IsOwner()) return;
+
+            ZDOID boss = nview.GetZDO().GetZDOID(FanSpecial.AddKey);
+            if (boss == ZDOID.None) return;
+
+            if (VandiConfig.Verbose.Value)
+                VandiPlugin.Log.LogInfo("Boss add " + __instance.name + " died, boss " + boss + ".");
+
+            ZDO bossZdo = ZDOMan.instance == null ? null : ZDOMan.instance.GetZDO(boss);
+            if (bossZdo == null) return;
+
+            ZRoutedRpc.instance.InvokeRoutedRPC(bossZdo.GetOwner(), ChipRpc, boss,
+                VandiConfig.AddChipPercent.Value / 100f);
+        }
+
+        private static void Chip(long sender, ZDOID bossId, float fraction)
+        {
+            ZDO zdo = ZDOMan.instance == null ? null : ZDOMan.instance.GetZDO(bossId);
+            if (VandiConfig.Verbose.Value)
+                VandiPlugin.Log.LogInfo("Chip message for " + bossId + ": zdo " + (zdo != null) + ", owner " + (zdo != null && zdo.IsOwner()) + ".");
+
+            if (zdo == null || !zdo.IsOwner() || ZNetScene.instance == null) return;
+
+            GameObject go = ZNetScene.instance.FindInstance(bossId);
+            Character boss = go == null ? null : go.GetComponent<Character>();
+            if (boss == null || boss.IsDead()) return;
+
+            float max = boss.GetMaxHealth();
+            float taken = zdo.GetFloat(ChippedKey, 0f);
+            float room = max * VandiConfig.AddChipCapPercent.Value / 100f - taken;
+            float amount = Mathf.Min(max * fraction, room);
+            if (amount <= 0f) return;
+
+            // Never to nothing: the chip shortens the fight, the player ends it.
+            boss.SetHealth(Mathf.Max(boss.GetHealth() - amount, 1f));
+            zdo.Set(ChippedKey, taken + amount);
+
+            if (VandiConfig.Verbose.Value)
+                VandiPlugin.Log.LogInfo("Boss add died: " + boss.name + " lost " + amount.ToString("0") + " health, "
+                    + (taken + amount).ToString("0") + " of at most " + (room + taken).ToString("0") + " so far.");
         }
     }
 }

@@ -111,8 +111,12 @@ namespace Vandi
             // for everybody who sees the fight.
             character.SetLevel(stars + 1);
 
+            float more = VandiConfig.BossHealthMultiplier.Value;
+            if (more > 0f && Mathf.Abs(more - 1f) > 0.001f)
+                character.SetMaxHealth(character.GetMaxHealth() * more);
+
             VandiPlugin.Log.LogInfo("Summoned " + boss + " at " + stars + " star(s) for player "
-                + summoner + ", who has killed it " + kills + " time(s).");
+                + summoner + ", who has killed it " + kills + " time(s), at " + character.GetMaxHealth().ToString("0") + " health.");
         }
 
         /// <summary>

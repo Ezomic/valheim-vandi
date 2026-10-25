@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Bonemass has a move of his own once you have beaten him.** A Bonemass you summoned with stars
+  rears up for a second and a half, then throws three skeletons in a fan over about five seconds,
+  twenty seconds into the fight and every thirty after. Those skeletons are his: they drop nothing,
+  and each one that dies takes three percent off his health, up to a third of the bar in all, so
+  they shorten the fight and never replace it. To pay for that he arrives with half as much health
+  again on top of what his stars already give. Settings `BossSpecials`, `BossHealthMultiplier`,
+  `AddChipPercent`, `AddChipCapPercent` and the `Fan*` family. The rear-up is bones posed in code
+  and has only been seen in a poison cloud, so look at it before trusting the angles.
 - **A boss killed three times doubles the metal of its own biome, for you.** The third kill is
   the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver for
   Moder, black metal for Yagluth and flametal for Fader, worked out from what the furnace and

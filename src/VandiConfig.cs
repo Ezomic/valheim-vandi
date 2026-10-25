@@ -31,6 +31,7 @@ namespace Vandi
         internal static ConfigEntry<bool> BossSpecials;
         internal static ConfigEntry<float> FanFirstDelay, FanCooldown, FanRearSeconds, FanSeconds, FanSpread, FanThrowSpeed;
         internal static ConfigEntry<int> FanSkeletons;
+        internal static ConfigEntry<float> BossHealthMultiplier, AddChipPercent, AddChipCapPercent;
 
         internal static ConfigEntry<int> DoubleAtKills;
         internal static ConfigEntry<string> DoubleBosses;
@@ -137,6 +138,19 @@ namespace Vandi
 
             FanThrowSpeed = cfg.Bind("Bosses", "FanThrowSpeed", 14f,
                 "How fast a skeleton leaves the boss, metres a second along the ground.");
+
+            BossHealthMultiplier = cfg.Bind("Bosses", "BossHealthMultiplier", 1.5f,
+                "Extra health a summoned boss with stars gets, on top of what its stars already "
+                + "give (a star doubles it, two stars triple it). It pays for the adds: with the "
+                + "cap below at a third, the adds can take off at most what this added, so the "
+                + "player still deals the health the stars alone would have asked for. 1 is off.");
+
+            AddChipPercent = cfg.Bind("Bosses", "AddChipPercent", 3f,
+                "Percent of the boss's full health taken off when one of its own adds dies.");
+
+            AddChipCapPercent = cfg.Bind("Bosses", "AddChipCapPercent", 33f,
+                "The most, in percent of the boss's full health, that its adds dying can take "
+                + "off in a whole fight. The adds shorten the fight; they never replace it.");
 
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which
