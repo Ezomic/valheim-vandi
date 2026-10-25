@@ -84,6 +84,7 @@ namespace Vandi
             _harmony = new Harmony(PluginGuid);
             PatchCore(typeof(Stars));
             PatchCore(typeof(Summon));
+            PatchCore(typeof(FanSpecial));
             PatchCore(typeof(Kills.Readout));
             Metal.Wire();
 

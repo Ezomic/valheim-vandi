@@ -28,6 +28,9 @@ namespace Vandi
 
         internal static ConfigEntry<bool> HarderBosses;
         internal static ConfigEntry<int> BossStarCap;
+        internal static ConfigEntry<bool> BossSpecials;
+        internal static ConfigEntry<float> FanFirstDelay, FanCooldown, FanRearSeconds, FanSeconds, FanSpread, FanThrowSpeed;
+        internal static ConfigEntry<int> FanSkeletons;
 
         internal static ConfigEntry<int> DoubleAtKills;
         internal static ConfigEntry<string> DoubleBosses;
@@ -106,6 +109,34 @@ namespace Vandi
                 + "is what a creature can reach in vanilla, and a two star boss hits hard "
                 + "enough that a third would be asking for a different party rather than a "
                 + "better one.");
+
+            BossSpecials = cfg.Bind("Bosses", "BossSpecials", true,
+                "A boss that arrives with stars also uses its own special moves. Bonemass rears "
+                + "up and throws skeletons in a fan. Off leaves every boss with only the moves "
+                + "the game gives it. A boss with no stars never uses one either way.");
+
+            FanFirstDelay = cfg.Bind("Bosses", "FanFirstDelay", 20f,
+                "Seconds from the boss appearing until its first fan. Slow on purpose, so the "
+                + "opening of the fight is still about the boss.");
+
+            FanCooldown = cfg.Bind("Bosses", "FanCooldown", 30f,
+                "Seconds between one fan starting and the next being allowed.");
+
+            FanRearSeconds = cfg.Bind("Bosses", "FanRearSeconds", 1.5f,
+                "How long Bonemass rears up before the first skeleton goes. This is the warning: "
+                + "nothing is thrown until it is over, so it should stay long enough to read.");
+
+            FanSeconds = cfg.Bind("Bosses", "FanSeconds", 5f,
+                "Seconds over which the skeletons are thrown, one after another.");
+
+            FanSkeletons = cfg.Bind("Bosses", "FanSkeletons", 3,
+                "Skeletons in one fan, spread evenly across the angle below.");
+
+            FanSpread = cfg.Bind("Bosses", "FanSpread", 40f,
+                "Degrees either side of the line to the target that the outer skeletons go.");
+
+            FanThrowSpeed = cfg.Bind("Bosses", "FanThrowSpeed", 14f,
+                "How fast a skeleton leaves the boss, metres a second along the ground.");
 
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which

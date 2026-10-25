@@ -1,0 +1,53 @@
+# LHM-82: a Bonemass summoned by someone who has killed it twice rears up and throws a fan of
+# three skeletons, and the skeletons are not worth anything.
+#
+# The kills are seeded with `key`, not fought: this tests the special, not the credit. Two kills
+# is two stars, which is the only level the special starts at. The player is NOT ghosted, because
+# the fan only starts once the boss is alerted and has a target.
+#
+# Bonemass is a boss at the Swamp altar, so `location` brings its own altar and the offering is
+# ten Withered Bones. The first fan is FanFirstDelay (20s) after the boss appears, so the shots start
+# at 18s and run a little over the rear (1.5s) and the throw (5s).
+#
+# MANUAL CHECKS, which this cannot do:
+#  1. Watch the boss at two stars. Want: it pauses and leans back with its arms raised for about a
+#     second and a half, THEN skeletons leave it one after another, in a fan, over about five seconds.
+#  2. Kill one of the skeletons. Want: nothing drops from it.
+#  3. Fight the same boss at zero stars (kills at 0). Want: no fan, ever.
+clear
+god
+
+unkey vandi_p_$player_defeated_bonemass
+key vandi_p_$player_defeated_bonemass 2
+wait 1
+
+location Bonemass
+wait 3
+
+banish Bonemass 80
+give WitheredBone:10
+wait 1
+
+offer WitheredBone
+wait 0.5
+screenshot
+appears Bonemass 40 100
+
+level Bonemass 3 100
+
+wait 22
+screenshot
+wait 1.3
+screenshot
+wait 1.3
+screenshot
+wait 1.3
+screenshot
+wait 1.3
+screenshot
+
+# NOT asserted here: that the skeletons exist. Bonemass summons skeletons of his own, so a count
+# near him is never exactly three. The Verbose log line "Boss special: skeleton n/3 thrown" is the
+# evidence, and the shots above show the rear-up.
+
+unkey vandi_p_$player_defeated_bonemass
