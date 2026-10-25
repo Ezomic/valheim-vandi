@@ -32,6 +32,8 @@ namespace Vandi
         internal static ConfigEntry<float> FanFirstDelay, FanCooldown, FanRearSeconds, FanSeconds, FanSpread, FanThrowSpeed;
         internal static ConfigEntry<int> FanSkeletons;
         internal static ConfigEntry<float> BossHealthMultiplier, AddChipPercent, AddChipCapPercent;
+        internal static ConfigEntry<float> AddIntervalStart, AddIntervalEnd, AddRingMin, AddRingMax;
+        internal static ConfigEntry<int> AddMaxAlive;
 
         internal static ConfigEntry<int> DoubleAtKills;
         internal static ConfigEntry<string> DoubleBosses;
@@ -151,6 +153,24 @@ namespace Vandi
             AddChipCapPercent = cfg.Bind("Bosses", "AddChipCapPercent", 33f,
                 "The most, in percent of the boss's full health, that its adds dying can take "
                 + "off in a whole fight. The adds shorten the fight; they never replace it.");
+
+            AddIntervalStart = cfg.Bind("Bosses", "AddIntervalStart", 25f,
+                "Seconds between adds sent in at the start of the fight, boss at full health. "
+                + "Slow on purpose: the opening is about the boss.");
+
+            AddIntervalEnd = cfg.Bind("Bosses", "AddIntervalEnd", 8f,
+                "Seconds between adds when the boss is nearly dead. The gap shrinks evenly between "
+                + "the two as it loses health, so the fight ends crowded.");
+
+            AddMaxAlive = cfg.Bind("Bosses", "AddMaxAlive", 6,
+                "The most adds from this wave alive at once. The throw is separate and not counted.");
+
+            AddRingMin = cfg.Bind("Bosses", "AddRingMin", 18f,
+                "Closest to the boss, in metres, that an add is sent in from.");
+
+            AddRingMax = cfg.Bind("Bosses", "AddRingMax", 30f,
+                "Furthest from the boss, in metres, that an add is sent in from. They arrive hunting you, "
+                + "so this is how long they take to reach you.");
 
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which

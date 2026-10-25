@@ -10,6 +10,11 @@
   again on top of what his stars already give. Settings `BossSpecials`, `BossHealthMultiplier`,
   `AddChipPercent`, `AddChipCapPercent` and the `Fan*` family. The rear-up is bones posed in code
   and has only been seen in a poison cloud, so look at it before trusting the angles.
+- **His fight keeps sending him help, and the help speeds up as he weakens.** While you fight a
+  starred Bonemass a skeleton arrives every 25 seconds from the edge of the fight and hunts you
+  straight away, and the gap shrinks to 8 seconds as his health runs down, six alive at most. They
+  are his, so they drop nothing and each death chips him. Settings `AddIntervalStart`,
+  `AddIntervalEnd`, `AddMaxAlive`, `AddRingMin` and `AddRingMax`.
 - **A boss killed three times doubles the metal of its own biome, for you.** The third kill is
   the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver for
   Moder, black metal for Yagluth and flametal for Fader, worked out from what the furnace and

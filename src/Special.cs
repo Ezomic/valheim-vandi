@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 
@@ -59,11 +60,14 @@ namespace Vandi
             return null;
         }
 
+        private float _nextAdd;
+        private readonly List<Character> _adds = new List<Character>();
+
         private void Update()
         {
             if (!VandiConfig.Enabled.Value || !VandiConfig.BossSpecials.Value) return;
             if (_boss == null || _nview == null || !_nview.IsValid() || !_nview.IsOwner()) return;
-            if (_boss.IsDead() || Time.time < _next || _ai == null) return;
+            if (_boss.IsDead() || _ai == null) return;
             if (!_ai.IsAlerted()) { Why("not alerted"); return; }
             if (_boss.GetLevel() < 2) { Why("level " + _boss.GetLevel()); return; }
             if (_nview.GetZDO().GetLong("vandi_summoner".GetStableHashCode(), 0L) == 0L) { Why("no summoner"); return; }
@@ -71,8 +75,63 @@ namespace Vandi
             Character target = _ai.GetTargetCreature();
             if (target == null) { Why("no target"); return; }
 
-            _next = Time.time + VandiConfig.FanCooldown.Value;
-            StartCoroutine(Fan(target));
+            if (Time.time >= _next)
+            {
+                _next = Time.time + VandiConfig.FanCooldown.Value;
+                StartCoroutine(Fan(target));
+            }
+
+            if (Time.time >= _nextAdd) Wave(target);
+        }
+
+        /// <summary>
+        /// One add, spawned out at the edge of the fight and sent straight for the player. The gap
+        /// to the next one shrinks as the boss loses health, so the fight starts slow and ends
+        /// crowded, and never holds more than AddMaxAlive at once.
+        /// </summary>
+        private void Wave(Character target)
+        {
+            float health = Mathf.Clamp01(_boss.GetHealthPercentage());
+            float gap = Mathf.Lerp(VandiConfig.AddIntervalEnd.Value, VandiConfig.AddIntervalStart.Value, health);
+            _nextAdd = Time.time + gap;
+
+            _adds.RemoveAll(a => a == null || a.IsDead());
+            if (_adds.Count >= VandiConfig.AddMaxAlive.Value) return;
+
+            ZNetScene scene = ZNetScene.instance;
+            GameObject prefab = scene == null ? null : scene.GetPrefab(Skeleton);
+            if (prefab == null) return;
+
+            Vector2 ring = Random.insideUnitCircle.normalized * Random.Range(VandiConfig.AddRingMin.Value, VandiConfig.AddRingMax.Value);
+            Vector3 at = transform.position + new Vector3(ring.x, 0f, ring.y);
+
+            float height;
+            if (!ZoneSystem.instance.GetSolidHeight(at, out height)) return;
+
+            at.y = height + 0.5f;
+
+            GameObject add = Object.Instantiate(prefab, at, Quaternion.LookRotation(target.transform.position - at));
+            Mark(add);
+
+            BaseAI ai = add.GetComponent<BaseAI>();
+            if (ai != null) ai.SetHuntPlayer(true);
+
+            Character character = add.GetComponent<Character>();
+            if (character != null) _adds.Add(character);
+
+            if (VandiConfig.Verbose.Value)
+                VandiPlugin.Log.LogInfo("Boss special: add sent in, " + _adds.Count + " alive, next in " + gap.ToString("0.0") + "s at "
+                    + (health * 100f).ToString("0") + "% health.");
+        }
+
+        /// <summary>Makes a thing the boss summoned: tied to the boss, and worth no loot.</summary>
+        private void Mark(GameObject add)
+        {
+            ZNetView view = add.GetComponent<ZNetView>();
+            if (view != null && view.IsValid()) view.GetZDO().Set(AddKey, _nview.GetZDO().m_uid);
+
+            CharacterDrop drops = add.GetComponent<CharacterDrop>();
+            if (drops != null) drops.SetDropsEnabled(false);
         }
 
         private float _said;
@@ -138,11 +197,7 @@ namespace Vandi
             Vector3 from = transform.position + Vector3.up * 3.5f + dir * 2f;
             GameObject thrown = Object.Instantiate(prefab, from, Quaternion.LookRotation(dir));
 
-            ZNetView view = thrown.GetComponent<ZNetView>();
-            if (view != null && view.IsValid()) view.GetZDO().Set(AddKey, _nview.GetZDO().m_uid);
-
-            CharacterDrop drops = thrown.GetComponent<CharacterDrop>();
-            if (drops != null) drops.SetDropsEnabled(false);
+            Mark(thrown);
 
             Rigidbody body = thrown.GetComponent<Rigidbody>();
             if (body != null) body.velocity = dir * VandiConfig.FanThrowSpeed.Value + Vector3.up * 6f;
