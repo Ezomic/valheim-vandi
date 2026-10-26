@@ -1,0 +1,22 @@
+#! nostage
+# LHM-85: the Seeker Queen's swarm. READ THIS BEFORE TRUSTING IT.
+#
+# The Queen is not summoned at an altar (Utangard says the same about her door), so Vandi never
+# stamps her with a summoner and never gives her stars. A Queen made by `spawn` is level 3 and
+# unstamped, and the move gate refuses her: "waiting, no summoner". That is what this file asserts,
+# and it is the honest result today: the swarm is built and dormant until Vandi has a way to
+# give the Queen stars. The move itself was run once with the summoner check bypassed in a
+# local build (see the changelog); that bypass is not in the code.
+#
+# Needs Vandi Verbose = true and QueenSeekerSwarm FirstDelay = 5.
+clear
+god
+
+banish SeekerQueen 80
+spawn SeekerQueen 3
+wait 25
+
+logged Boss specials: waiting, no summoner yes
+logged Boss special seeker swarm: starting no
+
+banish SeekerQueen 300

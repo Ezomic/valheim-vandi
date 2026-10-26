@@ -1,0 +1,79 @@
+#! nostage
+# LHM-85: a starred Fader uses its spokes, and warns before it does.
+#
+# Two kills are seeded with `key`, not fought: this tests the move, not the credit. Two kills
+# is two stars, and a move only starts at one star or more. The player is NOT ghosted, because a
+# move only starts once the boss is alerted and has a target. The Verbose log lines are the
+# evidence: "starting" must come after "warning sent", never alone, and `logged` reads them.
+#
+# Needs: Utangard BlockBossSummons = false (the altar is in the wrong biome for the test world),
+# Vandi Verbose = true and defeated_fader's FirstDelay set low (5) so the run is short.
+#
+# MANUAL CHECKS, which this cannot do: that the warning is readable on the ground, that it
+# stays up as long as the config says, and that standing outside it costs nothing.
+clear
+god
+
+unkey vandi_p_$player_defeated_fader
+key vandi_p_$player_defeated_fader 2
+wait 1
+
+location FaderLocation
+wait 3
+
+banish Fader 80
+give Bell:4
+wait 1
+
+offer Bell
+wait 1.5
+offer Bell
+wait 1.5
+offer Bell
+wait 1.5
+offer Bell
+wait 1.5
+wait 0.5
+appears Fader 40 100
+
+level Fader 3 100
+
+wait 2
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+screenshot
+wait 0.5
+wait 4
+logged Boss special spokes: starting yes
+logged Boss special spokes: warning sent yes
+
+unkey vandi_p_$player_defeated_fader
+banish Fader 300

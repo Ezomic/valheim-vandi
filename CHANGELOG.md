@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+- **Every boss you have beaten gets a move of its own, and every one warns you first.** A boss
+  summoned with one star or more, by someone who has killed it before, now uses the move below
+  in the middle of its fight. Each is marked on the ground for seconds before it can hurt
+  anyone, only one runs at a time (a boss does not start a move while the Bonemass fan is going,
+  or the other way round), the first comes thirty seconds or more into the fight, and a boss at
+  no stars never uses one. Every move is decided by the machine that owns the boss and drawn on
+  every screen; nothing is played from a file, the warnings are shapes laid on the terrain. Every
+  number is a setting, each move has an `Enabled` switch in its own section, `BossSpecials` still
+  turns them all off, and `SpecialGap` and `SpecialDamageScale` apply to all. The damage numbers
+  are first guesses and have not been balanced.
+- **Bonemass: the bog ring.** The ground around him is marked out to fourteen metres for three
+  seconds, then a ring of poison rolls out across it. Walk out of the mark, or be in the air when
+  the ring passes under you.
+- **The Elder: the root wave.** A strip of ground toward you is marked for two seconds, then roots
+  erupt along it in a rolling front. Step sideways, or jump as the front passes.
+- **Yagluth: the meteor volley.** Six spots are marked around you, the first one on you, a half
+  second apart. Each is struck by a meteor when its own three seconds are up.
+- **The Seeker Queen: the seeker swarm.** A spiral of spots is marked around her, and a seeker
+  rises out of each in turn and hunts you. They are hers: they drop nothing and each death chips
+  her, up to the same cap as the Bonemass adds.
+- **Moder: the ice ring.** A circle of ground where you stand is marked for three seconds, then
+  freezes for six. The frost bites when it forms and every second after, and slows you.
+- **Eikthyr: the charge.** A line follows you for a second and a half, then locks with a ring at
+  its far end. After a short beat he runs the line on his own run animation and the ring goes
+  off in lightning. His AI is switched off for the length of the move and back on after it.
+- **Fader: the spokes.** His choice, left open. Six spokes of ground are marked around him like
+  a wheel, one aimed at you, and fire erupts along all of them. The wedges between are safe, and so
+  is the ground within four metres of him.
+
 - **Bonemass has a move of his own once you have beaten him.** A Bonemass you summoned with stars
   rears up for a second and a half, then throws three skeletons in a fan over about five seconds,
   twenty seconds into the fight and every thirty after. Those skeletons are his: they drop nothing,
