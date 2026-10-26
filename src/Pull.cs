@@ -19,14 +19,20 @@ namespace Vandi
     internal sealed class Pull
     {
         internal const string PullRpc = "Vandi_Pull";
+        internal const string PulledKey = "vandi_pulled";
+        private const string CountKey = "vandi_pulled_count";
 
-        private int _pulled;
         private readonly HashSet<ZDOID> _seen = new HashSet<ZDOID>();
 
         internal void Wave(Character boss)
         {
             if (!VandiConfig.PullWild.Value) return;
-            if (_pulled >= VandiConfig.PullMaxPerFight.Value) return;
+            ZNetView bossView = boss.GetComponent<ZNetView>();
+            if (bossView == null || !bossView.IsValid()) return;
+
+            ZDO bossZdo = bossView.GetZDO();
+            int pulled = bossZdo.GetInt(CountKey, 0);
+            if (pulled >= VandiConfig.PullMaxPerFight.Value) return;
 
             string key = Bosses.KeyOf(boss);
             if (key == null) return;
@@ -41,19 +47,21 @@ namespace Vandi
 
             near.Sort((a, b) => Vector3.Distance(a.transform.position, centre).CompareTo(Vector3.Distance(b.transform.position, centre)));
 
-            int room = Mathf.Min(VandiConfig.PullPerWave.Value, VandiConfig.PullMaxPerFight.Value - _pulled);
+            int room = Mathf.Min(VandiConfig.PullPerWave.Value, VandiConfig.PullMaxPerFight.Value - pulled);
             int sent = 0;
 
             foreach (Character c in near)
             {
                 if (sent >= room) break;
 
-                Send(c);
+                Send(c, bossZdo.m_uid);
                 sent++;
             }
 
+            if (sent > 0) bossZdo.Set(CountKey, pulled + sent);
+
             if (sent > 0 && VandiConfig.Verbose.Value)
-                VandiPlugin.Log.LogInfo("Boss pull: " + sent + " wild creature(s) drawn in, " + _pulled + " of at most "
+                VandiPlugin.Log.LogInfo("Boss pull: " + sent + " wild creature(s) drawn in, " + (pulled + sent) + " of at most "
                     + VandiConfig.PullMaxPerFight.Value + " this fight, " + near.Count + " in reach.");
         }
 
@@ -76,36 +84,59 @@ namespace Vandi
             return owners != null && owners.Contains(bossKey);
         }
 
-        private void Send(Character c)
+        private void Send(Character c, ZDOID boss)
         {
             ZNetView view = c.GetComponent<ZNetView>();
             ZDO zdo = view.GetZDO();
 
             _seen.Add(zdo.m_uid);
-            _pulled++;
-
-            if (view.IsOwner()) Hunt(c.gameObject);
-            else ZRoutedRpc.instance.InvokeRoutedRPC(zdo.GetOwner(), PullRpc, zdo.m_uid);
+            Order(view, zdo, boss, true);
         }
 
-        private static void Hunt(GameObject go)
+        private static void Order(ZNetView view, ZDO zdo, ZDOID boss, bool hunt)
+        {
+            if (view.IsOwner()) Hunt(view.gameObject, boss, hunt);
+            else ZRoutedRpc.instance.InvokeRoutedRPC(zdo.GetOwner(), PullRpc, zdo.m_uid, boss, hunt);
+        }
+
+        private static void Hunt(GameObject go, ZDOID boss, bool hunt)
         {
             BaseAI ai = go.GetComponent<BaseAI>();
-            if (ai == null) return;
+            ZNetView view = go.GetComponent<ZNetView>();
+            if (ai == null || view == null || !view.IsValid()) return;
 
-            ai.SetHuntPlayer(true);
+            view.GetZDO().Set(PulledKey, hunt ? boss : ZDOID.None);
+            ai.SetHuntPlayer(hunt);
 
             if (VandiConfig.Verbose.Value)
-                VandiPlugin.Log.LogInfo("Boss pull: " + go.name + " now hunting, " + ai.HuntPlayer() + ".");
+                VandiPlugin.Log.LogInfo("Boss pull: " + go.name + (hunt ? " now hunting, " : " released, hunting ") + ai.HuntPlayer() + ".");
         }
 
-        internal static void Answer(long sender, ZDOID id)
+        internal static void Answer(long sender, ZDOID id, ZDOID boss, bool hunt)
         {
             ZDO zdo = ZDOMan.instance == null ? null : ZDOMan.instance.GetZDO(id);
             if (zdo == null || !zdo.IsOwner() || ZNetScene.instance == null) return;
 
             GameObject go = ZNetScene.instance.FindInstance(id);
-            if (go != null) Hunt(go);
+            if (go != null) Hunt(go, boss, hunt);
+        }
+
+        /// <summary>
+        /// The fight is over: what this boss pulled goes back to being wild. The hunt flag is in the
+        /// creature's ZDO and survives a reload, so a Draugr drawn in would otherwise hunt the player
+        /// for ever. PullRelease off leaves them hunting.
+        /// </summary>
+        internal static void Release(ZDOID boss)
+        {
+            if (!VandiConfig.PullRelease.Value) return;
+
+            foreach (Character c in new List<Character>(Character.GetAllCharacters()))
+            {
+                ZNetView view = c == null ? null : c.GetComponent<ZNetView>();
+                if (view == null || !view.IsValid() || view.GetZDO().GetZDOID(PulledKey) != boss) continue;
+
+                Order(view, view.GetZDO(), boss, false);
+            }
         }
     }
 
@@ -115,8 +146,45 @@ namespace Vandi
         [HarmonyPostfix]
         private static void Register()
         {
-            if (ZRoutedRpc.instance != null)
-                ZRoutedRpc.instance.Register<ZDOID>(Pull.PullRpc, Pull.Answer);
+            if (ZRoutedRpc.instance == null) return;
+
+            ZRoutedRpc.instance.Register<ZDOID, ZDOID, bool>(Pull.PullRpc, Pull.Answer);
+
+            if (VandiConfig.Verbose.Value) VandiPlugin.Log.LogInfo("Boss pull: " + Pull.PullRpc + " registered.");
+        }
+
+        [HarmonyPatch(typeof(Character), "OnDeath")]
+        [HarmonyPrefix]
+        private static void BossDying(Character __instance)
+        {
+            if (__instance == null || __instance.GetComponent<FanSpecial>() == null) return;
+
+            ZNetView view = __instance.GetComponent<ZNetView>();
+            if (view != null && view.IsValid() && view.IsOwner()) Pull.Release(view.GetZDO().m_uid);
+        }
+
+        // A creature that wakes up still marked by a boss that no longer exists was left hunting by
+        // a fight nobody finished: the boss left without dying and the world was saved.
+        [HarmonyPatch(typeof(BaseAI), "Awake")]
+        [HarmonyPostfix]
+        private static void Woke(BaseAI __instance)
+        {
+            if (!VandiConfig.PullRelease.Value || ZDOMan.instance == null) return;
+
+            ZNetView view = __instance.GetComponent<ZNetView>();
+            if (view == null || !view.IsValid() || !view.IsOwner()) return;
+
+            ZDOID boss = view.GetZDO().GetZDOID(Pull.PulledKey);
+            if (boss != ZDOID.None) __instance.StartCoroutine(Forget(view, boss));
+        }
+
+        // Delayed: the zone's ZDOs are not all loaded while the first creature is waking.
+        private static System.Collections.IEnumerator Forget(ZNetView view, ZDOID boss)
+        {
+            yield return new WaitForSeconds(5f);
+
+            if (view != null && view.IsValid() && view.IsOwner() && ZDOMan.instance.GetZDO(boss) == null)
+                Pull.Answer(0L, view.GetZDO().m_uid, boss, false);
         }
     }
 }

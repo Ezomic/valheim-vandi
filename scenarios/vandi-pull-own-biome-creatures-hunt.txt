@@ -40,5 +40,11 @@ logged Boss pull: 2 wild creature(s) drawn in, 4 of at most 4 yes
 logged Boss pull: 3 wild no
 logged now hunting, True yes
 
+# (Vandi_Pull registering is logged at world load, before a run begins, so `logged` cannot see it.)
+# The fight ends: what was pulled goes back to being wild (PullRelease).
+kill Bonemass 100
+wait 3
+logged released, hunting False yes
+
 banish all 100
 unkey vandi_p_$player_defeated_bonemass

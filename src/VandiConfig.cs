@@ -34,7 +34,7 @@ namespace Vandi
         internal static ConfigEntry<float> BossHealthMultiplier, AddChipPercent, AddChipCapPercent;
         internal static ConfigEntry<float> AddIntervalStart, AddIntervalEnd, AddRingMin, AddRingMax;
         internal static ConfigEntry<int> AddMaxAlive;
-        internal static ConfigEntry<bool> PullWild;
+        internal static ConfigEntry<bool> PullWild, PullRelease;
         internal static ConfigEntry<float> PullRadius;
         internal static ConfigEntry<int> PullPerWave, PullMaxPerFight;
 
@@ -181,6 +181,10 @@ namespace Vandi
                 + "own creatures: they keep their loot and their deaths do not hurt the boss. Only wild, "
                 + "living, non-boss creatures that are not already hunting; tamed creatures, players "
                 + "and fish are left alone. Off leaves the biome where it stands.");
+
+            PullRelease = cfg.Bind("Bosses", "PullRelease", true,
+                "When the fight ends the creatures it drew in stop hunting you and go back to being wild. "
+                + "Off leaves them hunting, which the game saves, so they keep coming after a reload.");
 
             PullRadius = cfg.Bind("Bosses", "PullRadius", 60f,
                 "Metres from the boss within which a wild creature can be drawn in.");
