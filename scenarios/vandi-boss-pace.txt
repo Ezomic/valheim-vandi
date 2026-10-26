@@ -72,9 +72,9 @@ wait 3
 
 logged Boss pace: Bonemass at 2 star(s), move x1.100, attack x1.100. yes
 
-# The boss walks to the player and swings. 25 seconds is generous; the log line is written on the
+# The boss walks to the player and swings. 70 seconds, because he is not alerted for the first twenty and then has to walk to you; the log line is written on the
 # first frame of each swing the pace changes.
-wait 25
+wait 70
 logged swings at animator speed 1.100 yes
 
 unkey vandi_p_$player_defeated_bonemass
