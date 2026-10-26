@@ -21,7 +21,8 @@
   second apart. Each is struck by a meteor when its own three seconds are up.
 - **The Seeker Queen: the seeker swarm.** A spiral of spots is marked around her, and a seeker
   rises out of each in turn and hunts you. They are hers: they drop nothing and each death chips
-  her, up to the same cap as the Bonemass adds.
+  her, up to the same cap as the Bonemass adds. She is not summoned at an altar, so Vandi never
+  gives her stars or a summoner and this move stays dormant until it does.
 - **Moder: the ice ring.** A circle of ground where you stand is marked for three seconds, then
   freezes for six. The frost bites when it forms and every second after, and slows you.
 - **Eikthyr: the charge.** A line follows you for a second and a half, then locks with a ring at
