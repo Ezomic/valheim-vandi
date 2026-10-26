@@ -26,22 +26,19 @@ namespace Vandi
         {
             const string s = "ElderRootWave";
 
-            _on = cfg.Bind(s, "Enabled", true,
-                "A starred Elder marks a strip of ground toward you, then roots erupt along it in a wave. "
+            _on = SpecialConfig.Bind(cfg, s, "Enabled", true, "A starred Elder marks a strip of ground toward you, then roots erupt along it in a wave. "
                 + "Off removes this move and leaves his others.");
-            _first = cfg.Bind(s, "FirstDelay", 30f, "Seconds from the boss appearing until its first wave.");
-            _cooldown = cfg.Bind(s, "Cooldown", 40f, "Seconds between one wave ending and the next being allowed.");
-            _warning = cfg.Bind(s, "WarningSeconds", 2.2f,
-                "How long the strip stays marked before the roots move. The strip is aimed once, when the "
+            _first = SpecialConfig.Bind(cfg, s, "FirstDelay", 30f, "Seconds from the boss appearing until its first wave.");
+            _cooldown = SpecialConfig.Bind(cfg, s, "Cooldown", 40f, "Seconds between one wave ending and the next being allowed.");
+            _warning = SpecialConfig.Bind(cfg, s, "WarningSeconds", 2.2f, "How long the strip stays marked before the roots move. The strip is aimed once, when the "
                 + "warning starts, and does not follow you.");
-            _length = cfg.Bind(s, "Length", 28f, "How far from the Elder the wave reaches, in metres.");
-            _width = cfg.Bind(s, "Width", 4f, "Width of the marked strip in metres.");
-            _speed = cfg.Bind(s, "WaveSpeed", 16f, "How fast the front of the wave travels, metres a second.");
-            _front = cfg.Bind(s, "FrontDepth", 3f,
-                "Depth of the front in metres: how much of the strip is dangerous at any moment. "
+            _length = SpecialConfig.Bind(cfg, s, "Length", 28f, "How far from the Elder the wave reaches, in metres.");
+            _width = SpecialConfig.Bind(cfg, s, "Width", 4f, "Width of the marked strip in metres.");
+            _speed = SpecialConfig.Bind(cfg, s, "WaveSpeed", 16f, "How fast the front of the wave travels, metres a second.");
+            _front = SpecialConfig.Bind(cfg, s, "FrontDepth", 3f, "Depth of the front in metres: how much of the strip is dangerous at any moment. "
                 + "With the speed this is how long a jump has to last.");
-            _damage = cfg.Bind(s, "Damage", 50f, "Pierce damage to a player the front passes through on the ground.");
-            _push = cfg.Bind(s, "Knockback", 12f, "Push on a player the roots hit.");
+            _damage = SpecialConfig.Bind(cfg, s, "Damage", 50f, "Pierce damage to a player the front passes through on the ground.");
+            _push = SpecialConfig.Bind(cfg, s, "Knockback", 12f, "Push on a player the roots hit.");
         }
 
         internal override IEnumerator Run(SpecialRun run)
@@ -56,7 +53,7 @@ namespace Vandi
 
             run.Send(new SpecialCall { At = start, Aim = dir, A = length, B = warning, C = speed, D = width });
 
-            yield return run.Pause(warning);
+            yield return run.Pause(warning + SpecialRun.Lag);
             if (!run.Alive) yield break;
 
             HashSet<Player> hit = new HashSet<Player>();
@@ -69,7 +66,7 @@ namespace Vandi
 
                     Vector3 rel = p.transform.position - start;
                     float along = Vector3.Dot(rel, dir), across = Mathf.Abs(Vector3.Dot(rel, right));
-                    if (across > width * 0.5f || along > front || along < front - depth || along > length) continue;
+                    if (across > width * 0.5f || along < 0f || along > front || along < front - depth || along > length) continue;
 
                     hit.Add(p);
                     run.Hit(p, _damage.Value, HitData.DamageType.Pierce, start, _push.Value, "roots");

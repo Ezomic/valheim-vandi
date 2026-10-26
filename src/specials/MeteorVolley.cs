@@ -26,20 +26,18 @@ namespace Vandi
         {
             const string s = "YagluthMeteors";
 
-            _on = cfg.Bind(s, "Enabled", true,
-                "A starred Yagluth marks spots around you on the ground, and meteors land on them. "
+            _on = SpecialConfig.Bind(cfg, s, "Enabled", true, "A starred Yagluth marks spots around you on the ground, and meteors land on them. "
                 + "Off removes this move and leaves his others.");
-            _first = cfg.Bind(s, "FirstDelay", 35f, "Seconds from the boss appearing until its first volley.");
-            _cooldown = cfg.Bind(s, "Cooldown", 45f, "Seconds between one volley ending and the next being allowed.");
-            _count = cfg.Bind(s, "Meteors", 6, "Meteors in one volley. The first lands where you were standing when it was marked.");
-            _warning = cfg.Bind(s, "WarningSeconds", 2.8f,
-                "How long each spot is marked before its meteor lands. Nothing falls on a spot that has "
+            _first = SpecialConfig.Bind(cfg, s, "FirstDelay", 35f, "Seconds from the boss appearing until its first volley.");
+            _cooldown = SpecialConfig.Bind(cfg, s, "Cooldown", 45f, "Seconds between one volley ending and the next being allowed.");
+            _count = SpecialConfig.Bind(cfg, s, "Meteors", 6, "Meteors in one volley. The first lands where you were standing when it was marked.");
+            _warning = SpecialConfig.Bind(cfg, s, "WarningSeconds", 2.8f, "How long each spot is marked before its meteor lands. Nothing falls on a spot that has "
                 + "not been marked for this long.");
-            _stagger = cfg.Bind(s, "StaggerSeconds", 0.5f, "Seconds between one spot being marked and the next.");
-            _spread = cfg.Bind(s, "Spread", 8f, "How far from you, in metres, the scattered spots can be marked.");
-            _radius = cfg.Bind(s, "ImpactRadius", 3.5f, "Radius of each marked spot, in metres.");
-            _damage = cfg.Bind(s, "Damage", 75f, "Fire damage to a player inside a spot when its meteor lands.");
-            _push = cfg.Bind(s, "Knockback", 20f, "Push on a player a meteor hits.");
+            _stagger = SpecialConfig.Bind(cfg, s, "StaggerSeconds", 0.5f, "Seconds between one spot being marked and the next.");
+            _spread = SpecialConfig.Bind(cfg, s, "Spread", 8f, "How far from you, in metres, the scattered spots can be marked.");
+            _radius = SpecialConfig.Bind(cfg, s, "ImpactRadius", 3.5f, "Radius of each marked spot, in metres.");
+            _damage = SpecialConfig.Bind(cfg, s, "Damage", 75f, "Fire damage to a player inside a spot when its meteor lands.");
+            _push = SpecialConfig.Bind(cfg, s, "Knockback", 20f, "Push on a player a meteor hits.");
         }
 
         internal override IEnumerator Run(SpecialRun run)
@@ -61,12 +59,12 @@ namespace Vandi
                 yield return run.Pause(stagger);
             }
 
-            yield return run.Pause(warning);
+            yield return run.Pause(warning + SpecialRun.Lag);
         }
 
         private IEnumerator Land(SpecialRun run, Vector3 at, float delay, float radius)
         {
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSeconds(delay + SpecialRun.Lag);
             if (!run.Alive) yield break;
 
             foreach (Player p in Player.GetAllPlayers())

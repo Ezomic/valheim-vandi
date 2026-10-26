@@ -27,20 +27,17 @@ namespace Vandi
         {
             const string s = "ModerIceRing";
 
-            _on = cfg.Bind(s, "Enabled", true,
-                "A starred Moder marks a circle of ground around you, then freezes it for a few seconds. "
+            _on = SpecialConfig.Bind(cfg, s, "Enabled", true, "A starred Moder marks a circle of ground around you, then freezes it for a few seconds. "
                 + "Off removes this move.");
-            _first = cfg.Bind(s, "FirstDelay", 35f, "Seconds from the boss appearing until its first ring.");
-            _cooldown = cfg.Bind(s, "Cooldown", 50f, "Seconds between one ring ending and the next being allowed.");
-            _warning = cfg.Bind(s, "WarningSeconds", 3f,
-                "How long the circle is marked before it freezes. It is placed once, where you stand when "
+            _first = SpecialConfig.Bind(cfg, s, "FirstDelay", 35f, "Seconds from the boss appearing until its first ring.");
+            _cooldown = SpecialConfig.Bind(cfg, s, "Cooldown", 50f, "Seconds between one ring ending and the next being allowed.");
+            _warning = SpecialConfig.Bind(cfg, s, "WarningSeconds", 3f, "How long the circle is marked before it freezes. It is placed once, where you stand when "
                 + "the warning starts, and does not follow you.");
-            _radius = cfg.Bind(s, "Radius", 9f, "Radius of the circle in metres.");
-            _lasts = cfg.Bind(s, "FrozenSeconds", 6f, "How long the ice stays hurting after it forms.");
-            _tick = cfg.Bind(s, "TickSeconds", 1f, "Seconds between bites of frost while the ice lasts.");
-            _entry = cfg.Bind(s, "FormDamage", 30f, "Frost damage to everyone on the ground inside the circle when it freezes.");
-            _damage = cfg.Bind(s, "TickDamage", 12f,
-                "Frost damage each tick to anyone inside. Frost damage also slows, in proportion to how much "
+            _radius = SpecialConfig.Bind(cfg, s, "Radius", 9f, "Radius of the circle in metres.");
+            _lasts = SpecialConfig.Bind(cfg, s, "FrozenSeconds", 6f, "How long the ice stays hurting after it forms.");
+            _tick = SpecialConfig.Bind(cfg, s, "TickSeconds", 1f, "Seconds between bites of frost while the ice lasts.");
+            _entry = SpecialConfig.Bind(cfg, s, "FormDamage", 30f, "Frost damage to everyone on the ground inside the circle when it freezes.");
+            _damage = SpecialConfig.Bind(cfg, s, "TickDamage", 12f, "Frost damage each tick to anyone inside. Frost damage also slows, in proportion to how much "
                 + "of the victim's health it takes, so this is both the cost and the chill.");
         }
 
@@ -53,7 +50,7 @@ namespace Vandi
 
             run.Send(new SpecialCall { At = at, A = radius, B = warning, C = lasts });
 
-            yield return run.Pause(warning);
+            yield return run.Pause(warning + SpecialRun.Lag);
             if (!run.Alive) yield break;
 
             Bite(run, at, radius, _entry.Value, "ice forms");
@@ -71,7 +68,7 @@ namespace Vandi
         {
             foreach (Player p in Player.GetAllPlayers())
             {
-                if (!SpecialRun.Reachable(p) || !p.IsOnGround()) continue;
+                if (!SpecialRun.Reachable(p) || SpecialRun.AboveGround(p) > 3f) continue;
                 if (SpecialRun.FlatDistance(p.transform.position, at) > radius) continue;
 
                 run.Hit(p, damage, HitData.DamageType.Frost, at, 0f, what);

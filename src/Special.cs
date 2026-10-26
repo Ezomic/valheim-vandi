@@ -148,33 +148,38 @@ namespace Vandi
         {
             float rear = VandiConfig.FanRearSeconds.Value;
 
-            for (float t = 0f; t < rear; t += Time.deltaTime)
+            try
             {
-                _pose = Mathf.SmoothStep(0f, 1f, t / rear);
-                yield return null;
+                for (float t = 0f; t < rear; t += Time.deltaTime)
+                {
+                    _pose = Mathf.SmoothStep(0f, 1f, t / rear);
+                    yield return null;
+                }
+
+                _pose = 1f;
+
+                int count = VandiConfig.FanSkeletons.Value;
+                float span = VandiConfig.FanSeconds.Value;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (_boss == null || _boss.IsDead()) break;
+
+                    Throw(target, i, count);
+                    yield return new WaitForSeconds(span / count);
+                }
+
+                for (float t = 0f; t < 0.6f; t += Time.deltaTime)
+                {
+                    _pose = 1f - t / 0.6f;
+                    yield return null;
+                }
             }
-
-            _pose = 1f;
-
-            int count = VandiConfig.FanSkeletons.Value;
-            float span = VandiConfig.FanSeconds.Value;
-
-            for (int i = 0; i < count; i++)
+            finally
             {
-                if (_boss == null || _boss.IsDead()) break;
-
-                Throw(target, i, count);
-                yield return new WaitForSeconds(span / count);
+                _pose = 0f;
+                SpecialLock.Release(_boss);
             }
-
-            for (float t = 0f; t < 0.6f; t += Time.deltaTime)
-            {
-                _pose = 1f - t / 0.6f;
-                yield return null;
-            }
-
-            _pose = 0f;
-            SpecialLock.Release(_boss);
         }
 
         private void Throw(Character target, int index, int count)

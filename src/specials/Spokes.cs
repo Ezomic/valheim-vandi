@@ -28,21 +28,19 @@ namespace Vandi
         {
             const string s = "FaderSpokes";
 
-            _on = cfg.Bind(s, "Enabled", true,
-                "A starred Fader marks spokes of ground around him like a wheel, one aimed at you, then fire "
+            _on = SpecialConfig.Bind(cfg, s, "Enabled", true, "A starred Fader marks spokes of ground around him like a wheel, one aimed at you, then fire "
                 + "erupts along them. Off removes this move.");
-            _first = cfg.Bind(s, "FirstDelay", 40f, "Seconds from the boss appearing until its first set of spokes.");
-            _cooldown = cfg.Bind(s, "Cooldown", 50f, "Seconds between one set ending and the next being allowed.");
-            _spokes = cfg.Bind(s, "Spokes", 6, "Spokes in the wheel, evenly spaced. One is aimed at you when the warning starts.");
-            _warning = cfg.Bind(s, "WarningSeconds", 3f, "How long the spokes are marked before the fire erupts.");
-            _length = cfg.Bind(s, "Length", 26f, "How far each spoke reaches from him, in metres.");
-            _width = cfg.Bind(s, "Width", 3.5f, "Width of each spoke in metres.");
-            _inner = cfg.Bind(s, "InnerGap", 4f,
-                "Where the spokes begin, in metres from him. Inside this the ground is clear, so a fighter "
+            _first = SpecialConfig.Bind(cfg, s, "FirstDelay", 40f, "Seconds from the boss appearing until its first set of spokes.");
+            _cooldown = SpecialConfig.Bind(cfg, s, "Cooldown", 50f, "Seconds between one set ending and the next being allowed.");
+            _spokes = SpecialConfig.Bind(cfg, s, "Spokes", 6, "Spokes in the wheel, evenly spaced. One is aimed at you when the warning starts.");
+            _warning = SpecialConfig.Bind(cfg, s, "WarningSeconds", 3f, "How long the spokes are marked before the fire erupts.");
+            _length = SpecialConfig.Bind(cfg, s, "Length", 26f, "How far each spoke reaches from him, in metres.");
+            _width = SpecialConfig.Bind(cfg, s, "Width", 3.5f, "Width of each spoke in metres.");
+            _inner = SpecialConfig.Bind(cfg, s, "InnerGap", 4f, "Where the spokes begin, in metres from him. Inside this the ground is clear, so a fighter "
                 + "at his feet is not trapped by the overlap of every spoke at the centre.");
-            _speed = cfg.Bind(s, "EruptionSpeed", 30f, "How fast the fire runs outward along the spokes, metres a second.");
-            _damage = cfg.Bind(s, "Damage", 85f, "Fire damage to a player the eruption passes through.");
-            _push = cfg.Bind(s, "Knockback", 15f, "Push on a player the fire hits.");
+            _speed = SpecialConfig.Bind(cfg, s, "EruptionSpeed", 30f, "How fast the fire runs outward along the spokes, metres a second.");
+            _damage = SpecialConfig.Bind(cfg, s, "Damage", 85f, "Fire damage to a player the eruption passes through.");
+            _push = SpecialConfig.Bind(cfg, s, "Knockback", 15f, "Push on a player the fire hits.");
         }
 
         private static Vector3 Spoke(Vector3 first, int index, int count)
@@ -61,7 +59,7 @@ namespace Vandi
 
             run.Send(new SpecialCall { At = at, Aim = first, N = count, Phase = Mathf.RoundToInt(speed), A = length, B = warning, C = width, D = inner });
 
-            yield return run.Pause(warning);
+            yield return run.Pause(warning + SpecialRun.Lag);
             if (!run.Alive) yield break;
 
             HashSet<Player> hit = new HashSet<Player>();

@@ -32,24 +32,20 @@ namespace Vandi
         {
             const string s = "EikthyrCharge";
 
-            _on = cfg.Bind(s, "Enabled", true,
-                "A starred Eikthyr picks you out, follows you with a marked line, locks it, then charges along "
+            _on = SpecialConfig.Bind(cfg, s, "Enabled", true, "A starred Eikthyr picks you out, follows you with a marked line, locks it, then charges along "
                 + "it and ends in a burst of lightning. Off removes this move.");
-            _first = cfg.Bind(s, "FirstDelay", 25f, "Seconds from the boss appearing until its first charge.");
-            _cooldown = cfg.Bind(s, "Cooldown", 35f, "Seconds between one charge ending and the next being allowed.");
-            _track = cfg.Bind(s, "TrackSeconds", 1.8f,
-                "How long the marked line follows you before it locks. After it locks it never moves again.");
-            _lock = cfg.Bind(s, "LockSeconds", 0.9f,
-                "How long the locked line and the burst ring are shown before he runs. This is the time to "
+            _first = SpecialConfig.Bind(cfg, s, "FirstDelay", 25f, "Seconds from the boss appearing until its first charge.");
+            _cooldown = SpecialConfig.Bind(cfg, s, "Cooldown", 35f, "Seconds between one charge ending and the next being allowed.");
+            _track = SpecialConfig.Bind(cfg, s, "TrackSeconds", 1.8f, "How long the marked line follows you before it locks. After it locks it never moves again.");
+            _lock = SpecialConfig.Bind(cfg, s, "LockSeconds", 0.9f, "How long the locked line and the burst ring are shown before he runs. This is the time to "
                 + "step off the line, and it is not shortened by anything.");
-            _length = cfg.Bind(s, "Length", 24f, "How far the charge runs, in metres, and so where the burst is.");
-            _width = cfg.Bind(s, "Width", 3.5f, "Width of the marked line in metres; anyone in it as he passes is hit.");
-            _burst = cfg.Bind(s, "BurstRadius", 6f, "Radius of the lightning burst at the end of the line, in metres.");
-            _damage = cfg.Bind(s, "ChargeDamage", 45f, "Blunt damage to a player he runs through.");
-            _burstDamage = cfg.Bind(s, "BurstDamage", 40f, "Lightning damage to a player inside the ring when the burst goes off.");
-            _push = cfg.Bind(s, "Knockback", 18f, "Push on a player the charge hits.");
-            _minRange = cfg.Bind(s, "MinimumDistance", 8f,
-                "He will not start a charge at a target closer than this, so it never begins on top of you.");
+            _length = SpecialConfig.Bind(cfg, s, "Length", 24f, "How far the charge runs, in metres, and so where the burst is.");
+            _width = SpecialConfig.Bind(cfg, s, "Width", 3.5f, "Width of the marked line in metres; anyone in it as he passes is hit.");
+            _burst = SpecialConfig.Bind(cfg, s, "BurstRadius", 6f, "Radius of the lightning burst at the end of the line, in metres.");
+            _damage = SpecialConfig.Bind(cfg, s, "ChargeDamage", 45f, "Blunt damage to a player he runs through.");
+            _burstDamage = SpecialConfig.Bind(cfg, s, "BurstDamage", 40f, "Lightning damage to a player inside the ring when the burst goes off.");
+            _push = SpecialConfig.Bind(cfg, s, "Knockback", 18f, "Push on a player the charge hits.");
+            _minRange = SpecialConfig.Bind(cfg, s, "MinimumDistance", 8f, "He will not start a charge at a target closer than this, so it never begins on top of you.");
         }
 
         internal override IEnumerator Run(SpecialRun run)
@@ -80,7 +76,7 @@ namespace Vandi
                 boss.SetMoveDir(Vector3.zero);
                 boss.SetLookDir(dir);
 
-                yield return run.Pause(_lock.Value);
+                yield return run.Pause(_lock.Value + SpecialRun.Lag);
                 if (!run.Alive) yield break;
 
                 HashSet<Player> hit = new HashSet<Player>();
@@ -108,7 +104,7 @@ namespace Vandi
 
                         Vector3 rel = p.transform.position - boss.transform.position;
                         float along = Vector3.Dot(rel, dir), across = Mathf.Abs(Vector3.Dot(rel, Vector3.Cross(Vector3.up, dir)));
-                        if (across > width * 0.5f || along < -1.5f || along > 3.5f) continue;
+                        if (across > width * 0.5f || along < 0f || along > 3.5f) continue;
 
                         hit.Add(p);
                         run.Hit(p, _damage.Value, HitData.DamageType.Blunt, boss.transform.position, _push.Value, "charge");

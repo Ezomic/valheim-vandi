@@ -47,13 +47,43 @@ namespace Vandi
     {
         internal static ConfigEntry<float> Gap, DamageScale;
 
+        // Names that may sit at zero, and the floors the rest are held to. A zero warning, speed or
+        // tick would turn a move into one that hurts unannounced or never ends, so the floor is
+        // part of the setting and not something the move has to defend against.
+        private static readonly string[] MayBeZero =
+            { "Damage", "Knockback", "FirstDelay", "Cooldown", "Spread", "InnerGap", "InnerRadius", "MinimumDistance", "StaggerSeconds", "IntervalSeconds" };
+
+        private static float Floor(string key)
+        {
+            if (System.Array.IndexOf(MayBeZero, key) >= 0) return 0f;
+            if (key.Contains("Warning") || key.Contains("Lock")) return 0.5f;
+            if (key.Contains("Speed") || key.Contains("Tick")) return 0.5f;
+            return 0.1f;
+        }
+
+        internal static ConfigEntry<float> Bind(ConfigFile cfg, string section, string key, float value, string text)
+        {
+            float max = key.Contains("Warning") ? 30f : 1000f;
+            return cfg.Bind(section, key, value, new ConfigDescription(text, new AcceptableValueRange<float>(Floor(key), max)));
+        }
+
+        internal static ConfigEntry<int> Bind(ConfigFile cfg, string section, string key, int value, string text)
+        {
+            int min = key == "Spokes" ? 2 : 1;
+            return cfg.Bind(section, key, value, new ConfigDescription(text, new AcceptableValueRange<int>(min, 30)));
+        }
+
+        internal static ConfigEntry<T> Bind<T>(ConfigFile cfg, string section, string key, T value, string text)
+        {
+            return cfg.Bind(section, key, value, text);
+        }
+
         internal static void Bind(ConfigFile cfg)
         {
-            Gap = cfg.Bind("Specials", "SpecialGap", 10f,
-                "Seconds of quiet after any special move ends before the same boss may start another. "
+            Gap = Bind(cfg, "Specials", "SpecialGap", 10f, "Seconds of quiet after any special move ends before the same boss may start another. "
                 + "Only one move runs at a time whatever this says; this is the breathing room after it.");
 
-            DamageScale = cfg.Bind("Specials", "SpecialDamageScale", 1f,
+            DamageScale = Bind(cfg, "Specials", "SpecialDamageScale", 1f,
                 "Multiplier on the damage of every special move at once, for tuning a whole fight without "
                 + "touching each move. 0 makes them harmless and leaves every warning in place.");
         }
@@ -233,7 +263,27 @@ namespace Vandi
         /// <summary>A player the ground can hurt: alive, on their feet on the ground (a jump clears it), not a ghost.</summary>
         internal static bool Grounded(Player p)
         {
-            return p != null && !p.IsDead() && !p.InGhostMode() && p.IsOnGround();
+            if (p == null || p.IsDead() || p.InGhostMode()) return false;
+
+            return AboveGround(p) < JumpClearance;
+        }
+
+        // Character.IsOnGround is the contact flag of the machine that simulates the character, so on
+        // the boss owner it is false for every remote player. Height over the ground is read from the
+        // synced position and means the same everywhere; a jump clears this, standing and walking do not.
+        internal const float JumpClearance = 0.7f;
+
+        // Owner timers run this much longer than the warning drawn on a remote screen, which starts when
+        // the message lands, so nobody is hit before their own screen has shown the whole warning.
+        internal const float Lag = 0.25f;
+
+        internal static float AboveGround(Player p)
+        {
+            Vector3 at = p.transform.position;
+            float h;
+            if (ZoneSystem.instance == null || !ZoneSystem.instance.GetSolidHeight(at, out h)) return 0f;
+
+            return at.y - h;
         }
 
         internal static bool Reachable(Player p)
@@ -413,6 +463,9 @@ namespace Vandi
             c.B = pkg.ReadSingle();
             c.C = pkg.ReadSingle();
             c.D = pkg.ReadSingle();
+
+            // A dedicated server draws nothing, and a client with no shader would draw magenta.
+            if (ZNet.instance == null || ZNet.instance.IsDedicated() || !Ground.CanDraw) return;
 
             BossSpecial special = SpecialRegistry.ById(c.Id);
             if (special == null || ZNetScene.instance == null) return;

@@ -45,7 +45,8 @@ namespace Vandi
         internal static readonly Color Danger = new Color(1f, 0.18f, 0.08f, 0.38f);
         internal static readonly Color DangerEdge = new Color(1f, 0.45f, 0.12f, 0.95f);
 
-        internal static bool CanDraw { get { return Find() != null; } }
+        // A dedicated server has no use for the shader and may not have one; it still has to run the moves.
+        internal static bool CanDraw { get { return (ZNet.instance != null && ZNet.instance.IsDedicated()) || Find() != null; } }
 
         private static Shader Find()
         {

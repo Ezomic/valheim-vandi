@@ -27,22 +27,19 @@ namespace Vandi
         {
             const string s = "QueenSeekerSwarm";
 
-            _on = cfg.Bind(s, "Enabled", true,
-                "A starred Seeker Queen marks a spiral of spots around her, and a seeker rises from each. "
+            _on = SpecialConfig.Bind(cfg, s, "Enabled", true, "A starred Seeker Queen marks a spiral of spots around her, and a seeker rises from each. "
                 + "Off removes this move and leaves her others.");
-            _first = cfg.Bind(s, "FirstDelay", 35f, "Seconds from the boss appearing until its first swarm.");
-            _cooldown = cfg.Bind(s, "Cooldown", 50f, "Seconds between one swarm ending and the next being allowed.");
-            _count = cfg.Bind(s, "Seekers", 6, "Seekers in one swarm, one per marked spot.");
-            _prefab = cfg.Bind(s, "Prefab", "Seeker",
-                "The creature that rises. Seeker is the ordinary one; SeekerBrute is far stronger and would "
+            _first = SpecialConfig.Bind(cfg, s, "FirstDelay", 35f, "Seconds from the boss appearing until its first swarm.");
+            _cooldown = SpecialConfig.Bind(cfg, s, "Cooldown", 50f, "Seconds between one swarm ending and the next being allowed.");
+            _count = SpecialConfig.Bind(cfg, s, "Seekers", 6, "Seekers in one swarm, one per marked spot.");
+            _prefab = SpecialConfig.Bind(cfg, s, "Prefab", "Seeker", "The creature that rises. Seeker is the ordinary one; SeekerBrute is far stronger and would "
                 + "want the count turned down.");
-            _warning = cfg.Bind(s, "WarningSeconds", 2.5f,
-                "How long the first spot is marked before its seeker rises. Later spots are marked the same "
+            _warning = SpecialConfig.Bind(cfg, s, "WarningSeconds", 2.5f, "How long the first spot is marked before its seeker rises. Later spots are marked the same "
                 + "time longer, so every one is marked for at least this long.");
-            _interval = cfg.Bind(s, "IntervalSeconds", 0.35f, "Seconds between one seeker rising and the next.");
-            _turns = cfg.Bind(s, "SpiralTurns", 1.25f, "How many times round her the spiral goes from its first spot to its last.");
-            _inner = cfg.Bind(s, "InnerRadius", 4f, "Distance of the first spot from her, in metres.");
-            _outer = cfg.Bind(s, "OuterRadius", 12f, "Distance of the last spot from her, in metres.");
+            _interval = SpecialConfig.Bind(cfg, s, "IntervalSeconds", 0.35f, "Seconds between one seeker rising and the next.");
+            _turns = SpecialConfig.Bind(cfg, s, "SpiralTurns", 1.25f, "How many times round her the spiral goes from its first spot to its last.");
+            _inner = SpecialConfig.Bind(cfg, s, "InnerRadius", 4f, "Distance of the first spot from her, in metres.");
+            _outer = SpecialConfig.Bind(cfg, s, "OuterRadius", 12f, "Distance of the last spot from her, in metres.");
         }
 
         internal override IEnumerator Run(SpecialRun run)
@@ -73,7 +70,7 @@ namespace Vandi
                 run.Send(new SpecialCall { At = spots[i], A = 1.6f, B = warning + i * interval, N = i });
             }
 
-            yield return run.Pause(warning);
+            yield return run.Pause(warning + SpecialRun.Lag);
 
             for (int i = 0; i < count && run.Alive; i++)
             {

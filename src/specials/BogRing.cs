@@ -26,23 +26,19 @@ namespace Vandi
         {
             const string s = "BonemassBogRing";
 
-            _on = cfg.Bind(s, "Enabled", true,
-                "A starred Bonemass marks out the ground around him, then sends a ring of poison across it. "
+            _on = SpecialConfig.Bind(cfg, s, "Enabled", true, "A starred Bonemass marks out the ground around him, then sends a ring of poison across it. "
                 + "Off removes this move and leaves his others.");
-            _first = cfg.Bind(s, "FirstDelay", 30f,
-                "Seconds from the boss appearing until its first ring. Later than the skeleton fan on purpose, "
+            _first = SpecialConfig.Bind(cfg, s, "FirstDelay", 30f, "Seconds from the boss appearing until its first ring. Later than the skeleton fan on purpose, "
                 + "so the opening is still about the boss.");
-            _cooldown = cfg.Bind(s, "Cooldown", 45f, "Seconds between one ring ending and the next being allowed.");
-            _warning = cfg.Bind(s, "WarningSeconds", 3f,
-                "How long the ground stays marked before the ring moves. Nothing hurts until this is over, "
+            _cooldown = SpecialConfig.Bind(cfg, s, "Cooldown", 45f, "Seconds between one ring ending and the next being allowed.");
+            _warning = SpecialConfig.Bind(cfg, s, "WarningSeconds", 3f, "How long the ground stays marked before the ring moves. Nothing hurts until this is over, "
                 + "so it should stay long enough to walk out of the mark.");
-            _radius = cfg.Bind(s, "Radius", 14f, "How far from him the marked ground, and the ring, reach, in metres.");
-            _speed = cfg.Bind(s, "RingSpeed", 5f, "How fast the ring moves outward, metres a second.");
-            _band = cfg.Bind(s, "RingWidth", 2.5f,
-                "Thickness of the ring in metres. With the speed this is how long a jump has to last: "
+            _radius = SpecialConfig.Bind(cfg, s, "Radius", 14f, "How far from him the marked ground, and the ring, reach, in metres.");
+            _speed = SpecialConfig.Bind(cfg, s, "RingSpeed", 5f, "How fast the ring moves outward, metres a second.");
+            _band = SpecialConfig.Bind(cfg, s, "RingWidth", 2.5f, "Thickness of the ring in metres. With the speed this is how long a jump has to last: "
                 + "2.5 metres at 5 a second is half a second in the air.");
-            _damage = cfg.Bind(s, "Damage", 55f, "Poison damage to a player the ring passes through on the ground.");
-            _push = cfg.Bind(s, "Knockback", 15f, "Push on a player the ring hits.");
+            _damage = SpecialConfig.Bind(cfg, s, "Damage", 55f, "Poison damage to a player the ring passes through on the ground.");
+            _push = SpecialConfig.Bind(cfg, s, "Knockback", 15f, "Push on a player the ring hits.");
         }
 
         internal override IEnumerator Run(SpecialRun run)
@@ -54,7 +50,7 @@ namespace Vandi
 
             run.Send(new SpecialCall { At = at, A = radius, B = warning, C = speed, D = band });
 
-            yield return run.Pause(warning);
+            yield return run.Pause(warning + SpecialRun.Lag);
             if (!run.Alive) yield break;
 
             HashSet<Player> hit = new HashSet<Player>();
