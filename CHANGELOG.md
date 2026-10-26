@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **A starred boss is quicker on its feet and with its swing.** Five percent faster for each
+  star, in both walking and attacking, so a two star boss is ten percent up on both. Movement is the
+  boss's own speed fields; attacks play the swing animation faster, which also shortens the warning
+  before a hit by the same fraction, so the telegraph is the thing to watch when tuning it. Turning
+  speed, health and every other animation are untouched. Only the machine that owns the boss changes
+  anything, and it works the stars out from the level stored on the boss each frame, so a reload or a
+  change of owner carries it over. Moder is set to half the movement bonus (a flier's speed is large
+  and she needs no help), Yagluth and the Queen to none (they barely walk). Settings `BossPace`,
+  `BossMovePercentPerStar`, `BossAttackPercentPerStar` and `BossPaceOverrides`
+  (`boss:moveMultiplier:attackMultiplier`). Checked by the `vandi-boss-pace` scenario against the
+  Verbose log; not watched in game.
 - **Bonemass has a move of his own once you have beaten him.** A Bonemass you summoned with stars
   rears up for a second and a half, then throws three skeletons in a fan over about five seconds,
   twenty seconds into the fight and every thirty after. Those skeletons are his: they drop nothing,

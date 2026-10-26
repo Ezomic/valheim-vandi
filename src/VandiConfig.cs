@@ -34,6 +34,9 @@ namespace Vandi
         internal static ConfigEntry<float> BossHealthMultiplier, AddChipPercent, AddChipCapPercent;
         internal static ConfigEntry<float> AddIntervalStart, AddIntervalEnd, AddRingMin, AddRingMax;
         internal static ConfigEntry<int> AddMaxAlive;
+        internal static ConfigEntry<bool> BossPace;
+        internal static ConfigEntry<float> BossMovePercentPerStar, BossAttackPercentPerStar;
+        internal static ConfigEntry<string> BossPaceOverrides;
 
         internal static ConfigEntry<int> DoubleAtKills;
         internal static ConfigEntry<string> DoubleBosses;
@@ -171,6 +174,29 @@ namespace Vandi
             AddRingMax = cfg.Bind("Bosses", "AddRingMax", 30f,
                 "Furthest from the boss, in metres, that an add is sent in from. They arrive hunting you, "
                 + "so this is how long they take to reach you.");
+
+            BossPace = cfg.Bind("Bosses", "BossPace", true,
+                "A summoned boss with stars moves and attacks faster for each star. Off leaves its "
+                + "speed exactly as the game makes it. A boss with no stars is never touched either way.");
+
+            BossMovePercentPerStar = cfg.Bind("Bosses", "BossMovePercentPerStar", 5f,
+                "Percent added to a boss's walk, run, swim and flight speed for each star, so two "
+                + "stars at the default is 10 percent faster. The stars counted are capped by "
+                + "BossStarCap. Turning speed is never changed.");
+
+            BossAttackPercentPerStar = cfg.Bind("Bosses", "BossAttackPercentPerStar", 5f,
+                "Percent added to the speed of a boss's attack animations for each star. The whole "
+                + "swing plays faster, so the warning before a hit is shorter by the same fraction "
+                + "as the recovery after it; a small number is the point. Other animations are never retimed.");
+
+            BossPaceOverrides = cfg.Bind("Bosses", "BossPaceOverrides",
+                "defeated_dragon:0.5:1, defeated_goblinking:0:1, defeated_queen:0:1",
+                "boss:moveMultiplier:attackMultiplier, comma separated, keyed by defeat key like "
+                + "BossBiomes. The multipliers scale the two percents above for that boss alone: 0 "
+                + "leaves that speed alone, 2 doubles the bonus. A flat number is wrong for some "
+                + "bosses. Moder flies, so the same percent of a flight speed reads as far more, "
+                + "and Yagluth and the Queen barely walk, so a faster walk would only be a "
+                + "faster shuffle. A boss not listed gets multiplier 1 for both.");
 
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which

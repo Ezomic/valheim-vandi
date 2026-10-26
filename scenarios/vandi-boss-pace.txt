@@ -1,0 +1,80 @@
+# LHM-84: a summoned boss moves and swings 5 percent faster per star, none at zero stars.
+#
+# Run with Vandi Verbose = true and Utangard BlockBossSummons = false. The kills are seeded with
+# `key`, not fought. The three sections summon Bonemass at 0, 1 and 2 stars in that order, and the
+# 0 star section comes first because it asserts that no pace line has been written yet: `logged`
+# reads everything since the run began, so a later section would see the earlier ones.
+#
+# What this proves is the VALUES the boss ran on, from the Verbose log the component writes when it
+# applies them and when an attack starts. The log is the only evidence of the speeds: nothing here
+# measures metres a second, and nothing here SEES the faster swing.
+#
+# MANUAL CHECKS, which this cannot do:
+#  1. Watch a two star Bonemass walk and swing. Want: a little brisker than a plain one, and no
+#     frozen frames or snapping at the start or end of a swing.
+#  2. Look for a swing that plays at the wrong speed AFTER it ends. Want: none, the walk is normal.
+clear
+god
+
+unkey vandi_p_$player_defeated_bonemass
+wait 1
+
+location Bonemass
+wait 3
+
+banish Bonemass 80
+give WitheredBone:10
+wait 1
+
+offer WitheredBone
+wait 0.5
+appears Bonemass 40 100
+level Bonemass 1 100
+wait 3
+
+logged Boss pace: Bonemass at 0 star(s), left alone yes
+logged Boss pace: Bonemass at 1 star(s) no
+logged Boss pace: Bonemass at 2 star(s) no
+logged Boss pace: Bonemass swings no
+
+banish Bonemass 80
+wait 2
+
+key vandi_p_$player_defeated_bonemass 1
+wait 1
+
+give WitheredBone:10
+wait 1
+
+offer WitheredBone
+wait 0.5
+appears Bonemass 40 100
+level Bonemass 2 100
+wait 3
+
+logged Boss pace: Bonemass at 1 star(s), move x1.050, attack x1.050. yes
+
+banish Bonemass 80
+wait 2
+
+unkey vandi_p_$player_defeated_bonemass
+key vandi_p_$player_defeated_bonemass 2
+wait 1
+
+give WitheredBone:10
+wait 1
+
+offer WitheredBone
+wait 0.5
+appears Bonemass 40 100
+level Bonemass 3 100
+wait 3
+
+logged Boss pace: Bonemass at 2 star(s), move x1.100, attack x1.100. yes
+
+# The boss walks to the player and swings. 25 seconds is generous; the log line is written on the
+# first frame of each swing the pace changes.
+wait 25
+logged swings at animator speed 1.100 yes
+
+unkey vandi_p_$player_defeated_bonemass
