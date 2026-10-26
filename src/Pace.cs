@@ -38,8 +38,9 @@ namespace Vandi
 
         private float _speed, _walk, _run, _swim, _flySlow, _flyFast;
 
-        private float _move = float.NaN, _attack = float.NaN;
-        private bool _swinging;
+        private float _move = 1f, _attack = 1f;
+        private bool _swinging, _told, _raised;
+        private float _raisedTo;
 
         private void Awake()
         {
@@ -65,13 +66,19 @@ namespace Vandi
             float move = 1f, attack = 1f;
             if (stars > 0) Factors(_key, stars, out move, out attack);
 
-            if (!Mathf.Approximately(move, _move) || !Mathf.Approximately(attack, _attack))
+            bool changed = !Mathf.Approximately(move, _move) || !Mathf.Approximately(attack, _attack);
+            if (changed)
             {
                 _move = move;
                 _attack = attack;
                 Apply(move);
+            }
 
-                if (owner && VandiConfig.Verbose.Value)
+            if (owner && (changed || !_told))
+            {
+                _told = true;
+
+                if (VandiConfig.Verbose.Value)
                     VandiPlugin.Log.LogInfo(stars > 0
                         ? "Boss pace: " + Name() + " at " + stars + " star(s), move x" + move.ToString("0.000", CultureInfo.InvariantCulture)
                             + ", attack x" + attack.ToString("0.000", CultureInfo.InvariantCulture) + "."
@@ -87,7 +94,10 @@ namespace Vandi
         {
             if (!VandiConfig.Enabled.Value || !VandiConfig.BossPace.Value) return 0;
 
-            int level = _nview.GetZDO().GetInt(ZDOVars.s_level, 1);
+            ZDO zdo = _nview.GetZDO();
+            if (zdo.GetLong(Summon.SummonerKey, 0L) == 0L) return 0;
+
+            int level = zdo.GetInt(ZDOVars.s_level, 1);
             int stars = level - 1;
             int cap = VandiConfig.BossStarCap.Value;
 
@@ -107,16 +117,34 @@ namespace Vandi
         private void Swing(float attack, bool owner)
         {
             bool attacking = owner && _animator != null && Mathf.Abs(attack - 1f) > 0.0001f && _boss.InAttack();
-            if (!attacking) { _swinging = false; return; }
+            if (!attacking)
+            {
+                _swinging = false;
+                Lower();
+                return;
+            }
 
             if (!Mathf.Approximately(_animator.speed, 1f)) return;
 
             _animator.speed = attack;
+            _raised = true;
+            _raisedTo = attack;
 
             if (!_swinging && VandiConfig.Verbose.Value)
                 VandiPlugin.Log.LogInfo("Boss pace: " + Name() + " swings at animator speed " + attack.ToString("0.000", CultureInfo.InvariantCulture) + ".");
 
             _swinging = true;
+        }
+
+        // An attack cut short (a stagger, a death) or a boss handed to another machine mid-swing
+        // does not always pass through the game's own reset to 1, so the speed this wrote is
+        // taken back here, and only when it is still the value this wrote.
+        private void Lower()
+        {
+            if (!_raised) return;
+
+            _raised = false;
+            if (_animator != null && Mathf.Approximately(_animator.speed, _raisedTo)) _animator.speed = 1f;
         }
 
         private static string _parsedFrom;
