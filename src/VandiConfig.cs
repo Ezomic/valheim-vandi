@@ -172,6 +172,8 @@ namespace Vandi
                 "Furthest from the boss, in metres, that an add is sent in from. They arrive hunting you, "
                 + "so this is how long they take to reach you.");
 
+            SpecialRegistry.Bind(cfg);
+
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which
             // is the hardest fight the default gives and what the reward was asked for.

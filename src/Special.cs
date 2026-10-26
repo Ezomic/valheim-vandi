@@ -75,7 +75,7 @@ namespace Vandi
             Character target = _ai.GetTargetCreature();
             if (target == null) { Why("no target"); return; }
 
-            if (Time.time >= _next)
+            if (Time.time >= _next && SpecialLock.TryTake(_boss))
             {
                 _next = Time.time + VandiConfig.FanCooldown.Value;
                 StartCoroutine(Fan(target));
@@ -174,6 +174,7 @@ namespace Vandi
             }
 
             _pose = 0f;
+            SpecialLock.Release(_boss);
         }
 
         private void Throw(Character target, int index, int count)
