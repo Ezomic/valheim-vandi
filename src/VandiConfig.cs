@@ -34,6 +34,9 @@ namespace Vandi
         internal static ConfigEntry<float> BossHealthMultiplier, AddChipPercent, AddChipCapPercent;
         internal static ConfigEntry<float> AddIntervalStart, AddIntervalEnd, AddRingMin, AddRingMax;
         internal static ConfigEntry<int> AddMaxAlive;
+        internal static ConfigEntry<bool> PullWild;
+        internal static ConfigEntry<float> PullRadius;
+        internal static ConfigEntry<int> PullPerWave, PullMaxPerFight;
 
         internal static ConfigEntry<int> DoubleAtKills;
         internal static ConfigEntry<string> DoubleBosses;
@@ -171,6 +174,24 @@ namespace Vandi
             AddRingMax = cfg.Bind("Bosses", "AddRingMax", 30f,
                 "Furthest from the boss, in metres, that an add is sent in from. They arrive hunting you, "
                 + "so this is how long they take to reach you.");
+
+            PullWild = cfg.Bind("Bosses", "PullWild", true,
+                "During a starred boss fight, wild creatures of the boss's own biome that are already "
+                + "near it are drawn in and hunt you, on top of the adds it sends. They are the game's "
+                + "own creatures: they keep their loot and their deaths do not hurt the boss. Only wild, "
+                + "living, non-boss creatures that are not already hunting; tamed creatures, players "
+                + "and fish are left alone. Off leaves the biome where it stands.");
+
+            PullRadius = cfg.Bind("Bosses", "PullRadius", 60f,
+                "Metres from the boss within which a wild creature can be drawn in.");
+
+            PullPerWave = cfg.Bind("Bosses", "PullPerWave", 2,
+                "The most creatures drawn in each time an add is due, nearest first, so a camp of forty "
+                + "arrives a couple at a time. The gap between waves is the adds' own, AddIntervalStart "
+                + "shrinking to AddIntervalEnd as the boss weakens.");
+
+            PullMaxPerFight = cfg.Bind("Bosses", "PullMaxPerFight", 8,
+                "The most creatures drawn in over one fight, however many are near.");
 
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which

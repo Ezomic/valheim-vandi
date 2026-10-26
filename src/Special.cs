@@ -61,6 +61,7 @@ namespace Vandi
         }
 
         private float _nextAdd;
+        private readonly Pull _pull = new Pull();
         private readonly List<Character> _adds = new List<Character>();
 
         private void Update()
@@ -94,6 +95,8 @@ namespace Vandi
             float health = Mathf.Clamp01(_boss.GetHealthPercentage());
             float gap = Mathf.Lerp(VandiConfig.AddIntervalEnd.Value, VandiConfig.AddIntervalStart.Value, health);
             _nextAdd = Time.time + gap;
+
+            _pull.Wave(_boss);
 
             _adds.RemoveAll(a => a == null || a.IsDead());
             if (_adds.Count >= VandiConfig.AddMaxAlive.Value) return;

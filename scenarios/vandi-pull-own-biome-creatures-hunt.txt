@@ -1,0 +1,44 @@
+# LHM-86: during a starred Bonemass fight, wild creatures of his own biome already near it are drawn in and
+# hunt the player, a couple at a time, up to a cap per fight.
+#
+# The test world has no reachable Swamp (`biome swamp` finds none), so the test altar's Meadows stands in:
+# the Vandi cfg needs BossBiomes to carry defeated_bonemass:meadows as well. Needs Vandi Verbose = true, Utangard BlockBossSummons = false, and in the Vandi cfg
+# AddIntervalStart = AddIntervalEnd = 5, PullPerWave = 2, PullMaxPerFight = 4 so the caps are
+# reached in under a minute. Eight Draugr and Blob are spawned, so the cap, not the supply, is
+# what stops the pull. Run AFTER the two negative scenarios (`logged` reads the whole run).
+clear
+god
+
+unkey vandi_p_$player_defeated_bonemass
+key vandi_p_$player_defeated_bonemass 2
+wait 1
+
+banish all 80
+location Bonemass
+wait 3
+banish Bonemass 80
+give WitheredBone:10
+wait 1
+offer WitheredBone
+wait 0.5
+appears Bonemass 40 100
+level Bonemass 3 100
+
+spawn Draugr
+spawn Draugr
+spawn Draugr
+spawn Draugr
+spawn Blob
+spawn Blob
+spawn Blob
+spawn Blob
+wait 50
+screenshot
+
+logged Boss pull: 2 wild creature(s) drawn in, 2 of at most 4 yes
+logged Boss pull: 2 wild creature(s) drawn in, 4 of at most 4 yes
+logged Boss pull: 3 wild no
+logged now hunting, True yes
+
+banish all 100
+unkey vandi_p_$player_defeated_bonemass
