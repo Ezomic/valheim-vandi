@@ -88,6 +88,8 @@ namespace Vandi
             PatchCore(typeof(BossAdds));
             PatchCore(typeof(BossPace));
             PatchCore(typeof(PullPatches));
+            PatchCore(typeof(SpecialRunner));
+            PatchCore(typeof(SpecialNet));
             PatchCore(typeof(Kills.Readout));
             Metal.Wire();
 

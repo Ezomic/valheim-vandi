@@ -224,6 +224,8 @@ namespace Vandi
             PullMaxPerFight = cfg.Bind("Bosses", "PullMaxPerFight", 8,
                 "The most creatures drawn in over one fight, however many are near.");
 
+            SpecialRegistry.Bind(cfg);
+
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which
             // is the hardest fight the default gives and what the reward was asked for.
