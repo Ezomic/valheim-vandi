@@ -26,6 +26,13 @@
   straight away, and the gap shrinks to 8 seconds as his health runs down, six alive at most. They
   are his, so they drop nothing and each death chips him. Settings `AddIntervalStart`,
   `AddIntervalEnd`, `AddMaxAlive`, `AddRingMin` and `AddRingMax`.
+- **Starred Bonemass drags the swamp into the fight.** Wild Swamp creatures already within 60 metres of
+  him are drawn in and hunt you, nearest first, a couple at a time on the same clock as the skeleton adds
+  (slow at full health, quicker as he weakens), eight at most in a whole fight. They are the game's own
+  creatures: they keep their loot and their deaths do not chip him. Tamed creatures, players, bosses,
+  fish, anything already hunting and his own adds are left alone, and a creature is judged by the biome it
+  stands in, so a Boar in the Meadows is not his to call. Settings `PullWild`, `PullRadius`, `PullPerWave`
+  and `PullMaxPerFight`.
 - **A boss killed three times doubles the metal of its own biome, for you.** The third kill is
   the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver for
   Moder, black metal for Yagluth and flametal for Fader, worked out from what the furnace and

@@ -38,6 +38,10 @@ namespace Vandi
         internal static ConfigEntry<float> BossMovePercentPerStar, BossAttackPercentPerStar;
         internal static ConfigEntry<string> BossPaceOverrides;
 
+        internal static ConfigEntry<bool> PullWild, PullRelease;
+        internal static ConfigEntry<float> PullRadius;
+        internal static ConfigEntry<int> PullPerWave, PullMaxPerFight;
+
         internal static ConfigEntry<int> DoubleAtKills;
         internal static ConfigEntry<string> DoubleBosses;
         internal static ConfigEntry<string> NeverDouble;
@@ -197,6 +201,28 @@ namespace Vandi
                 + "bosses. Moder flies, so the same percent of a flight speed reads as far more, "
                 + "and Yagluth and the Queen barely walk, so a faster walk would only be a "
                 + "faster shuffle. A boss not listed gets multiplier 1 for both.");
+
+            PullWild = cfg.Bind("Bosses", "PullWild", true,
+                "During a starred boss fight, wild creatures of the boss's own biome that are already "
+                + "near it are drawn in and hunt you, on top of the adds it sends. They are the game's "
+                + "own creatures: they keep their loot and their deaths do not hurt the boss. Only wild, "
+                + "living, non-boss creatures that are not already hunting; tamed creatures, players "
+                + "and fish are left alone. Off leaves the biome where it stands.");
+
+            PullRelease = cfg.Bind("Bosses", "PullRelease", true,
+                "When the fight ends the creatures it drew in stop hunting you and go back to being wild. "
+                + "Off leaves them hunting, which the game saves, so they keep coming after a reload.");
+
+            PullRadius = cfg.Bind("Bosses", "PullRadius", 60f,
+                "Metres from the boss within which a wild creature can be drawn in.");
+
+            PullPerWave = cfg.Bind("Bosses", "PullPerWave", 2,
+                "The most creatures drawn in each time an add is due, nearest first, so a camp of forty "
+                + "arrives a couple at a time. The gap between waves is the adds' own, AddIntervalStart "
+                + "shrinking to AddIntervalEnd as the boss weakens.");
+
+            PullMaxPerFight = cfg.Bind("Bosses", "PullMaxPerFight", 8,
+                "The most creatures drawn in over one fight, however many are near.");
 
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which
