@@ -41,7 +41,7 @@ namespace Vandi
         private const string SummonPrefix = "vandi_summon_";
 
         /// <summary>The summoner, written on the boss itself so it survives the handover.</summary>
-        private static readonly int SummonerKey = "vandi_summoner".GetStableHashCode();
+        internal static readonly int SummonerKey = "vandi_summoner".GetStableHashCode();
 
         /// <summary>How far from the altar's spawn point a new boss can be and still be ours.</summary>
         private const float SpawnSearchRadius = 8f;
