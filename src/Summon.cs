@@ -41,7 +41,7 @@ namespace Vandi
         private const string SummonPrefix = "vandi_summon_";
 
         /// <summary>The summoner, written on the boss itself so it survives the handover.</summary>
-        private static readonly int SummonerKey = "vandi_summoner".GetStableHashCode();
+        internal static readonly int SummonerKey = "vandi_summoner".GetStableHashCode();
 
         /// <summary>How far from the altar's spawn point a new boss can be and still be ours.</summary>
         private const float SpawnSearchRadius = 8f;
@@ -111,8 +111,12 @@ namespace Vandi
             // for everybody who sees the fight.
             character.SetLevel(stars + 1);
 
+            float more = VandiConfig.BossHealthMultiplier.Value;
+            if (more > 0f && Mathf.Abs(more - 1f) > 0.001f)
+                character.SetMaxHealth(character.GetMaxHealth() * more);
+
             VandiPlugin.Log.LogInfo("Summoned " + boss + " at " + stars + " star(s) for player "
-                + summoner + ", who has killed it " + kills + " time(s).");
+                + summoner + ", who has killed it " + kills + " time(s), at " + character.GetMaxHealth().ToString("0") + " health.");
         }
 
         /// <summary>

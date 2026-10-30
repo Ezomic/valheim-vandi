@@ -1,0 +1,32 @@
+#! nostage
+# LHM-85: a boss with no stars never uses a special move, however long the fight runs.
+#
+# No kill is seeded, so Eikthyr arrives plain (level 1). With the Eikthyr charge's FirstDelay at 5
+# seconds a starred one would start by now; this one waits twenty-odd seconds and the log must show
+# only "waiting, level 1" and never "starting". Needs Vandi Verbose = true and
+# EikthyrCharge FirstDelay = 5, as vandi-special-charge does.
+clear
+god
+
+unkey vandi_p_$player_defeated_eikthyr
+wait 1
+
+location Eikthyrnir
+wait 3
+
+banish Eikthyr 80
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 0.5
+appears Eikthyr 40 100
+level Eikthyr 1 100
+
+wait 25
+screenshot
+
+logged Boss specials: waiting, level 1 yes
+logged Boss special charge: starting no
+logged Boss special charge: warning sent no
+
+banish Eikthyr 300

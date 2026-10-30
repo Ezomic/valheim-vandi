@@ -1,0 +1,35 @@
+# LHM-86: a starred Bonemass in the MEADOWS pulls nothing. Bonemass owns the Swamp (and the Ocean),
+# and a creature is judged by the biome under it, so a Draugr and a Boar standing near the fight in
+# the Meadows are not his to call. The fight is proved live by the add that is still sent in.
+#
+# Needs Vandi Verbose = true and Utangard BlockBossSummons = false. Run FIRST in a run: `logged`
+# reads everything since the run began, so a later scenario that does pull would spoil the "no".
+clear
+god
+
+unkey vandi_p_$player_defeated_bonemass
+key vandi_p_$player_defeated_bonemass 2
+wait 1
+
+location Bonemass
+wait 3
+banish Bonemass 80
+give WitheredBone:10
+wait 1
+offer WitheredBone
+wait 0.5
+appears Bonemass 40 100
+level Bonemass 3 100
+
+spawn Draugr
+spawn Draugr
+spawn Boar
+spawn Boar
+wait 45
+screenshot
+
+logged Boss special: add sent in yes
+logged Boss pull no
+
+banish all 100
+unkey vandi_p_$player_defeated_bonemass

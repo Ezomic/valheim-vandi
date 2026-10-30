@@ -2,6 +2,67 @@
 
 ## Unreleased
 
+- **A starred boss is quicker on its feet and with its swing.** Five percent faster for each
+  star, in both walking and attacking, so a two star boss is ten percent up on both. Movement is the
+  boss's own speed fields; attacks play the swing animation faster, which also shortens the warning
+  before a hit by the same fraction, so the telegraph is the thing to watch when tuning it. Turning
+  speed, health and every other animation are untouched. Only the machine that owns the boss changes
+  anything, and it works the stars out from the level stored on the boss each frame, so a reload or a
+  change of owner carries it over. Moder is set to half the movement bonus (a flier's speed is large
+  and she needs no help), Yagluth and the Queen to none (they barely walk). Settings `BossPace`,
+  `BossMovePercentPerStar`, `BossAttackPercentPerStar` and `BossPaceOverrides`
+  (`boss:moveMultiplier:attackMultiplier`). Checked by the `vandi-boss-pace` scenario against the
+  Verbose log; not watched in game.
+- **Every boss you have beaten gets a move of its own, and every one warns you first.** A boss
+  summoned with one star or more, by someone who has killed it before, now uses the move below
+  in the middle of its fight. Each is marked on the ground for seconds before it can hurt
+  anyone, only one runs at a time (a boss does not start a move while the Bonemass fan is going,
+  or the other way round), the first comes thirty seconds or more into the fight, and a boss at
+  no stars never uses one. Every move is decided by the machine that owns the boss and drawn on
+  every screen; nothing is played from a file, the warnings are shapes laid on the terrain. Every
+  number is a setting, each move has an `Enabled` switch in its own section, `BossSpecials` still
+  turns them all off, and `SpecialGap` and `SpecialDamageScale` apply to all. The damage numbers
+  are first guesses and have not been balanced.
+- **Bonemass: the bog ring.** The ground around him is marked out to fourteen metres for three
+  seconds, then a ring of poison rolls out across it. Walk out of the mark, or be in the air when
+  the ring passes under you.
+- **The Elder: the root wave.** A strip of ground toward you is marked for two seconds, then roots
+  erupt along it in a rolling front. Step sideways, or jump as the front passes.
+- **Yagluth: the meteor volley.** Six spots are marked around you, the first one on you, a half
+  second apart. Each is struck by a meteor when its own three seconds are up.
+- **The Seeker Queen: the seeker swarm.** A spiral of spots is marked around her, and a seeker
+  rises out of each in turn and hunts you. They are hers: they drop nothing and each death chips
+  her, up to the same cap as the Bonemass adds. She is not summoned at an altar, so Vandi never
+  gives her stars or a summoner and this move stays dormant until it does.
+- **Moder: the ice ring.** A circle of ground where you stand is marked for three seconds, then
+  freezes for six. The frost bites when it forms and every second after, and slows you.
+- **Eikthyr: the charge.** A line follows you for a second and a half, then locks with a ring at
+  its far end. After a short beat he runs the line on his own run animation and the ring goes
+  off in lightning. His AI is switched off for the length of the move and back on after it.
+- **Fader: the spokes.** His choice, left open. Six spokes of ground are marked around him like
+  a wheel, one aimed at you, and fire erupts along all of them. The wedges between are safe, and so
+  is the ground within four metres of him.
+
+- **Bonemass has a move of his own once you have beaten him.** A Bonemass you summoned with stars
+  rears up for a second and a half, then throws three skeletons in a fan over about five seconds,
+  twenty seconds into the fight and every thirty after. Those skeletons are his: they drop nothing,
+  and each one that dies takes three percent off his health, up to a third of the bar in all, so
+  they shorten the fight and never replace it. To pay for that he arrives with half as much health
+  again on top of what his stars already give. Settings `BossSpecials`, `BossHealthMultiplier`,
+  `AddChipPercent`, `AddChipCapPercent` and the `Fan*` family. The rear-up is bones posed in code
+  and has only been seen in a poison cloud, so look at it before trusting the angles.
+- **His fight keeps sending him help, and the help speeds up as he weakens.** While you fight a
+  starred Bonemass a skeleton arrives every 25 seconds from the edge of the fight and hunts you
+  straight away, and the gap shrinks to 8 seconds as his health runs down, six alive at most. They
+  are his, so they drop nothing and each death chips him. Settings `AddIntervalStart`,
+  `AddIntervalEnd`, `AddMaxAlive`, `AddRingMin` and `AddRingMax`.
+- **Starred Bonemass drags the swamp into the fight.** Wild Swamp creatures already within 60 metres of
+  him are drawn in and hunt you, nearest first, a couple at a time on the same clock as the skeleton adds
+  (slow at full health, quicker as he weakens), eight at most in a whole fight. They are the game's own
+  creatures: they keep their loot and their deaths do not chip him. Tamed creatures, players, bosses,
+  fish, anything already hunting and his own adds are left alone, and a creature is judged by the biome it
+  stands in, so a Boar in the Meadows is not his to call. Settings `PullWild`, `PullRadius`, `PullPerWave`
+  and `PullMaxPerFight`.
 - **A boss killed three times doubles the metal of its own biome, for you.** The third kill is
   the one summoned at two stars. Copper and tin for the Elder, iron for Bonemass, silver for
   Moder, black metal for Yagluth and flametal for Fader, worked out from what the furnace and

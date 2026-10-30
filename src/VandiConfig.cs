@@ -28,6 +28,19 @@ namespace Vandi
 
         internal static ConfigEntry<bool> HarderBosses;
         internal static ConfigEntry<int> BossStarCap;
+        internal static ConfigEntry<bool> BossSpecials;
+        internal static ConfigEntry<float> FanFirstDelay, FanCooldown, FanRearSeconds, FanSeconds, FanSpread, FanThrowSpeed;
+        internal static ConfigEntry<int> FanSkeletons;
+        internal static ConfigEntry<float> BossHealthMultiplier, AddChipPercent, AddChipCapPercent;
+        internal static ConfigEntry<float> AddIntervalStart, AddIntervalEnd, AddRingMin, AddRingMax;
+        internal static ConfigEntry<int> AddMaxAlive;
+        internal static ConfigEntry<bool> BossPace;
+        internal static ConfigEntry<float> BossMovePercentPerStar, BossAttackPercentPerStar;
+        internal static ConfigEntry<string> BossPaceOverrides;
+
+        internal static ConfigEntry<bool> PullWild, PullRelease;
+        internal static ConfigEntry<float> PullRadius;
+        internal static ConfigEntry<int> PullPerWave, PullMaxPerFight;
 
         internal static ConfigEntry<int> DoubleAtKills;
         internal static ConfigEntry<string> DoubleBosses;
@@ -106,6 +119,112 @@ namespace Vandi
                 + "is what a creature can reach in vanilla, and a two star boss hits hard "
                 + "enough that a third would be asking for a different party rather than a "
                 + "better one.");
+
+            BossSpecials = cfg.Bind("Bosses", "BossSpecials", true,
+                "A boss that arrives with stars also uses its own special moves. Bonemass rears "
+                + "up and throws skeletons in a fan. Off leaves every boss with only the moves "
+                + "the game gives it. A boss with no stars never uses one either way.");
+
+            FanFirstDelay = cfg.Bind("Bosses", "FanFirstDelay", 20f,
+                "Seconds from the boss appearing until its first fan. Slow on purpose, so the "
+                + "opening of the fight is still about the boss.");
+
+            FanCooldown = cfg.Bind("Bosses", "FanCooldown", 30f,
+                "Seconds between one fan starting and the next being allowed.");
+
+            FanRearSeconds = cfg.Bind("Bosses", "FanRearSeconds", 1.5f,
+                "How long Bonemass rears up before the first skeleton goes. This is the warning: "
+                + "nothing is thrown until it is over, so it should stay long enough to read.");
+
+            FanSeconds = cfg.Bind("Bosses", "FanSeconds", 5f,
+                "Seconds over which the skeletons are thrown, one after another.");
+
+            FanSkeletons = cfg.Bind("Bosses", "FanSkeletons", 3,
+                "Skeletons in one fan, spread evenly across the angle below.");
+
+            FanSpread = cfg.Bind("Bosses", "FanSpread", 40f,
+                "Degrees either side of the line to the target that the outer skeletons go.");
+
+            FanThrowSpeed = cfg.Bind("Bosses", "FanThrowSpeed", 14f,
+                "How fast a skeleton leaves the boss, metres a second along the ground.");
+
+            BossHealthMultiplier = cfg.Bind("Bosses", "BossHealthMultiplier", 1.5f,
+                "Extra health a summoned boss with stars gets, on top of what its stars already "
+                + "give (a star doubles it, two stars triple it). It pays for the adds: with the "
+                + "cap below at a third, the adds can take off at most what this added, so the "
+                + "player still deals the health the stars alone would have asked for. 1 is off.");
+
+            AddChipPercent = cfg.Bind("Bosses", "AddChipPercent", 3f,
+                "Percent of the boss's full health taken off when one of its own adds dies.");
+
+            AddChipCapPercent = cfg.Bind("Bosses", "AddChipCapPercent", 33f,
+                "The most, in percent of the boss's full health, that its adds dying can take "
+                + "off in a whole fight. The adds shorten the fight; they never replace it.");
+
+            AddIntervalStart = cfg.Bind("Bosses", "AddIntervalStart", 25f,
+                "Seconds between adds sent in at the start of the fight, boss at full health. "
+                + "Slow on purpose: the opening is about the boss.");
+
+            AddIntervalEnd = cfg.Bind("Bosses", "AddIntervalEnd", 8f,
+                "Seconds between adds when the boss is nearly dead. The gap shrinks evenly between "
+                + "the two as it loses health, so the fight ends crowded.");
+
+            AddMaxAlive = cfg.Bind("Bosses", "AddMaxAlive", 6,
+                "The most adds from this wave alive at once. The throw is separate and not counted.");
+
+            AddRingMin = cfg.Bind("Bosses", "AddRingMin", 18f,
+                "Closest to the boss, in metres, that an add is sent in from.");
+
+            AddRingMax = cfg.Bind("Bosses", "AddRingMax", 30f,
+                "Furthest from the boss, in metres, that an add is sent in from. They arrive hunting you, "
+                + "so this is how long they take to reach you.");
+
+            BossPace = cfg.Bind("Bosses", "BossPace", true,
+                "A summoned boss with stars moves and attacks faster for each star. Off leaves its "
+                + "speed exactly as the game makes it. A boss with no stars is never touched either way.");
+
+            BossMovePercentPerStar = cfg.Bind("Bosses", "BossMovePercentPerStar", 5f,
+                "Percent added to a boss's walk, run, swim and flight speed for each star, so two "
+                + "stars at the default is 10 percent faster. The stars counted are capped by "
+                + "BossStarCap. Turning speed is never changed.");
+
+            BossAttackPercentPerStar = cfg.Bind("Bosses", "BossAttackPercentPerStar", 5f,
+                "Percent added to the speed of a boss's attack animations for each star. The whole "
+                + "swing plays faster, so the warning before a hit is shorter by the same fraction "
+                + "as the recovery after it; a small number is the point. Other animations are never retimed.");
+
+            BossPaceOverrides = cfg.Bind("Bosses", "BossPaceOverrides",
+                "defeated_dragon:0.5:1, defeated_goblinking:0:1, defeated_queen:0:1",
+                "boss:moveMultiplier:attackMultiplier, comma separated, keyed by defeat key like "
+                + "BossBiomes. The multipliers scale the two percents above for that boss alone: 0 "
+                + "leaves that speed alone, 2 doubles the bonus. A flat number is wrong for some "
+                + "bosses. Moder flies, so the same percent of a flight speed reads as far more, "
+                + "and Yagluth and the Queen barely walk, so a faster walk would only be a "
+                + "faster shuffle. A boss not listed gets multiplier 1 for both.");
+
+            PullWild = cfg.Bind("Bosses", "PullWild", true,
+                "During a starred boss fight, wild creatures of the boss's own biome that are already "
+                + "near it are drawn in and hunt you, on top of the adds it sends. They are the game's "
+                + "own creatures: they keep their loot and their deaths do not hurt the boss. Only wild, "
+                + "living, non-boss creatures that are not already hunting; tamed creatures, players "
+                + "and fish are left alone. Off leaves the biome where it stands.");
+
+            PullRelease = cfg.Bind("Bosses", "PullRelease", true,
+                "When the fight ends the creatures it drew in stop hunting you and go back to being wild. "
+                + "Off leaves them hunting, which the game saves, so they keep coming after a reload.");
+
+            PullRadius = cfg.Bind("Bosses", "PullRadius", 60f,
+                "Metres from the boss within which a wild creature can be drawn in.");
+
+            PullPerWave = cfg.Bind("Bosses", "PullPerWave", 2,
+                "The most creatures drawn in each time an add is due, nearest first, so a camp of forty "
+                + "arrives a couple at a time. The gap between waves is the adds' own, AddIntervalStart "
+                + "shrinking to AddIntervalEnd as the boss weakens.");
+
+            PullMaxPerFight = cfg.Bind("Bosses", "PullMaxPerFight", 8,
+                "The most creatures drawn in over one fight, however many are near.");
+
+            SpecialRegistry.Bind(cfg);
 
             // Kills, not stars: Vandi stores kills, and BossStarCap is a separate decision. Each
             // repeat kill adds a star, so the third kill is the one summoned at two stars, which
