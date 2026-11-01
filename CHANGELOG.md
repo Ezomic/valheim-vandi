@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Another mod can ask for a harder boss.** `VandiApi.AskHarder(bossKey, extraStars)`, called on the
+  machine whose offering was accepted, adds that many stars to what the summoner's record gives the
+  boss, and they may pass `BossStarCap`. `VandiApi.IsHarderSummon(boss)` says whether a boss got its
+  stars that way, so a mod can reward the harder fight without knowing how it is written down. With
+  `HarderBosses` off an ask buys nothing and leaves no stamp. An ask whose boss never came is removed
+  by the next offering the altar accepts, so a plain summon stays plain. Nothing in the game calls
+  this yet: Hausi will. Above the cap a boss keeps gaining health, damage and drops, but its speed
+  holds at the cap and the game draws it no star marker. README has the details.
 - **A starred boss is quicker on its feet and with its swing.** Five percent faster for each
   star, in both walking and attacking, so a two star boss is ten percent up on both. Movement is the
   boss's own speed fields; attacks play the swing animation faster, which also shortens the warning

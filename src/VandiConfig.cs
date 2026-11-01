@@ -118,7 +118,8 @@ namespace Vandi
                 "The most stars a summoned boss can gain, at one star per repeat kill. Two "
                 + "is what a creature can reach in vanilla, and a two star boss hits hard "
                 + "enough that a third would be asking for a different party rather than a "
-                + "better one.");
+                + "better one. Holds for what your kills earn. Stars another mod asks for on top, "
+                + "such as a Hausi sash at the altar, may pass it.");
 
             BossSpecials = cfg.Bind("Bosses", "BossSpecials", true,
                 "A boss that arrives with stars also uses its own special moves. Bonemass rears "

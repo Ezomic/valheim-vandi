@@ -1,0 +1,93 @@
+#! nostage
+# LHM-87: a veteran at the star cap who asks for more goes past it, and master's hardening holds at
+# three stars. Level 4 is a level none of it had seen.
+#
+# Needs VandiProbe and Vandi Verbose = true. The probe sets the rest for itself and puts it back:
+# EikthyrCharge FirstDelay low so the move comes quickly, AddInterval low for the adds, and
+# defeated_bonemass:meadows in BossBiomes because the test world's altar stands in a Meadows. Set with
+# `vandiprobe set`, so this cannot run on a server client: Core would put the host's value back.
+#
+# Why a pass means what it says: with five kills and a cap of two, level 4 is reachable only past the
+# cap. Pace is read from the line BossPace logs when it applies the numbers, and it is pinned at TWO
+# stars on purpose: BossPace holds at BossStarCap, so a three star boss moves as a two star one does.
+# Every other reading is "did it run at level 4", and a thrown skeleton, a sent add, a hunting
+# creature or a started charge cannot be logged by a boss that has stopped working. An exception
+# would land in Player.log, which the run script checks.
+clear
+god
+
+# Off, and said so: the other files leave ghost on, and a boss with no target does nothing at any level.
+ghost off
+
+mod vandiprobe set Bosses AddIntervalStart 5
+mod vandiprobe set Bosses AddIntervalEnd 5
+mod vandiprobe set Stars BossBiomes defeated_eikthyr:Meadows,defeated_gdking:BlackForest,defeated_bonemass:Swamp,defeated_bonemass:Ocean,defeated_bonemass:Meadows,defeated_dragon:Mountain,defeated_goblinking:Plains,defeated_queen:Mistlands,defeated_fader:AshLands,defeated_fader:DeepNorth
+
+unkey vandi_p_$player_defeated_bonemass
+unkey vandi_harder_defeated_bonemass
+key vandi_p_$player_defeated_bonemass 5
+wait 1
+
+banish all 80
+location Bonemass
+wait 3
+banish Bonemass 80
+
+mod vandiprobe arm 1
+give WitheredBone:10
+wait 1
+offer WitheredBone
+wait 0.5
+appears Bonemass 40 100
+wait 2
+level Bonemass 4 100
+mod vandiprobe boss Bonemass 100
+printed harder=yes stamp=1 level=4 yes
+logged Summoned defeated_bonemass at 3 star(s) yes
+logged Boss pace: Bonemass at 2 star(s), move x1.100, attack x1.100. yes
+logged Boss pace: Bonemass at 3 star(s) no
+
+spawn Draugr
+spawn Draugr
+spawn Blob
+spawn Blob
+
+# First fan at FanFirstDelay (20s) and the adds every 5s, plus the walk to the player.
+wait 45
+logged Boss special: skeleton 1/3 thrown yes
+logged Boss special: add sent in yes
+logged now hunting, True yes
+
+kill Bonemass 100
+wait 3
+logged released, hunting False yes
+logged defeated_bonemass credited to player yes
+keyis vandi_p_$player_defeated_bonemass 6
+
+# And the registered specials, which share one gate on level. Eikthyr has one.
+banish all 100
+unkey vandi_p_$player_defeated_eikthyr
+key vandi_p_$player_defeated_eikthyr 5
+mod vandiprobe set EikthyrCharge FirstDelay 5
+wait 1
+location Eikthyrnir
+wait 3
+banish Eikthyr 80
+mod vandiprobe arm 1
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 0.5
+appears Eikthyr 90 100
+wait 2
+level Eikthyr 4 100
+wait 30
+logged Boss special charge: starting yes
+
+banish all 300
+unkey vandi_p_$player_defeated_bonemass
+unkey vandi_p_$player_defeated_eikthyr
+mod vandiprobe set EikthyrCharge FirstDelay 25
+mod vandiprobe set Bosses AddIntervalStart 25
+mod vandiprobe set Bosses AddIntervalEnd 8
+mod vandiprobe set Stars BossBiomes defeated_eikthyr:Meadows,defeated_gdking:BlackForest,defeated_bonemass:Swamp,defeated_bonemass:Ocean,defeated_dragon:Mountain,defeated_goblinking:Plains,defeated_queen:Mistlands,defeated_fader:AshLands,defeated_fader:DeepNorth
