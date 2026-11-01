@@ -71,6 +71,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- A scenario fixture with its own csproj. The SDK globs every .cs under this folder, and
+         that one must never be compiled into the mod: see the header of VandiProbe.cs. -->
+    <Compile Remove="tools\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Shared source, not a reference: see the header of core\shared\BiomeIndex.cs. Vandi uses it
          to say which biome a dropped metal belongs to, so Core stays optional. -->
     <Compile Include="..\core\shared\BiomeIndex.cs" Link="shared\BiomeIndex.cs" />

@@ -1,0 +1,58 @@
+#! nostage
+# LHM-87: with HarderBosses off an ask buys nothing: no star, no stamp, and so no relic from Hausi.
+#
+# Needs VandiProbe. Why a pass means what it says: the record's kills would give stars with the switch
+# on, so level 1 shows the switch is being read, and the two sections are the two ways in. The first
+# is the ask itself, which must not publish. The second is a key already in the world when the switch
+# went off, written with `key` because AskHarder refuses, which must be taken and must buy nothing.
+clear
+god
+ghost
+
+mod vandiprobe set Bosses HarderBosses false
+printed set=false yes
+
+unkey vandi_p_$player_defeated_eikthyr
+unkey vandi_harder_defeated_eikthyr
+key vandi_p_$player_defeated_eikthyr 1
+wait 1
+
+location Eikthyrnir
+wait 3
+banish Eikthyr 80
+
+mod vandiprobe arm 1
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 1
+mod vandiprobe asked defeated_eikthyr
+printed asked=none yes
+
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 1 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=1 yes
+banish Eikthyr 80
+wait 2
+
+# On the spawn itself, so that SpawnBoss's clear does not hide it: the key goes in during the delay.
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 1
+key vandi_harder_defeated_eikthyr 1
+wait 1
+keyis vandi_harder_defeated_eikthyr 1
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 1 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=1 yes
+mod vandiprobe asked defeated_eikthyr
+until 10 asked=none
+
+banish Eikthyr 300
+mod vandiprobe set Bosses HarderBosses true
+unkey vandi_p_$player_defeated_eikthyr

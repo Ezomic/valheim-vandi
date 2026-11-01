@@ -130,13 +130,43 @@ near that.
 
 Another mod can ask how many times a player has killed a boss through `Vandi.VandiApi`:
 `BossKills(playerId, bossKey)`, `LocalBossKills(bossKey)` for the player at the keyboard, and
-`CountsKillsOf(bossKey)` to check that Vandi records that boss at all. It only reads.
+`CountsKillsOf(bossKey)` to check that Vandi records that boss at all. Those three only read.
 
 Use that rather than the key above. The key layout is Vandi's own business and can change, and
 a mod reading the key directly would then read zero kills for everyone without saying so.
 
 Malmr, the vein mining mod, is the one that uses it. A metal's vein mining
 opens only once you have beaten that biome's boss at one star, which is your second kill.
+
+It can also ask for a harder summon, and tell which bosses came from one:
+
+- `AskHarder(bossKey, extraStars)` is called on the machine whose offering was accepted, from a
+  postfix on `OfferingBowl.RPC_BossSpawnInitiated`. That boss arrives with what the summoner's
+  record gives it plus these stars, and they may pass `BossStarCap`, because a veteran at the cap
+  would otherwise get nothing harder. It is still the summoner's boss: the health multiplier and the
+  kill credit are as they always are, and the kill counts once.
+- `IsHarderSummon(boss)` says whether a boss got its stars that way, on every machine that has it.
+  It reads the boss's ZDO, so call it before `OnDeath` lets go of that: from
+  `CharacterDrop.GenerateDropList` or a prefix on `OnDeath`.
+
+With `HarderBosses` or `Enabled` off an ask does nothing and no boss is ever stamped, so whatever a
+mod hands out for the harder fight does not come for free. So does an ask for a boss `CountsKillsOf`
+says no to, or for less than one star.
+
+**An ask lasts until the next accepted summon of that boss.** The altar's owner may be another
+machine, so an ask travels as a global key, `vandi_harder_<bosskey>`, the same handover as the
+summoner's. If that boss never comes, because the altar's owner left during the spawn delay, the key
+stays. The next offering the altar accepts removes it before anyone can ask again, so the plain
+summon after it stays plain. The key's value is only the stars and never a time, because the game
+keeps every value a global key has held in the saved player profile for good.
+
+What a boss does above the cap, today, is worth knowing before asking for one:
+
+- Health and damage keep rising, since those are the game's own per-level numbers. So do its drops:
+  the game doubles a drop's amount per star, so three stars is eight times, where two is four.
+- Move and attack speed hold at `BossStarCap`, so a three star boss is no faster than a two star one.
+- Specials, adds and pull-in only ask whether the boss has a star, so they are the same at three.
+- The game draws star markers for level 2 and level 3 only, so a boss at level 4 shows none.
 
 ## What decides what, and where
 
@@ -179,7 +209,7 @@ The file is `BepInEx/config/ezomic.valheim.vandi.cfg`, written on first run.
 | `StarChanceCap` | 25 | The most that can be added, whatever the count |
 | `BossBiomes` | the eight pairings | `boss:biome`, comma separated, spelled the same as Utangard and Vaettir spell it |
 | `HarderBosses` | true | A summoned boss you have killed before arrives with stars |
-| `BossStarCap` | 2 | The most stars a summoned boss can gain |
+| `BossStarCap` | 2 | The most stars your kills can give a summoned boss. Stars another mod asks for go on top |
 | `DoubleAtKills` | 3 | Kills of a biome's boss needed for its metal to drop double for you. 0 is off |
 | `DoubleBosses` | the five with metal | Boss keys that can double their biome's metal. Eikthyr and the Queen are not on it |
 | `NeverDouble` | `BloodGoldOre, BloodGold` | Prefab names that never double, whatever the kills |
