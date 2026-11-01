@@ -84,7 +84,7 @@ namespace Vandi
         /// accepted summon before it counts, or harden a boss nobody meant it for.
         ///
         /// Does nothing for a boss CountsKillsOf says no to, for stars below one, or while Enabled or
-        /// HarderBosses is off.
+        /// HarderBosses is off. More than ten stars counts as ten.
         /// </summary>
         /// <param name="bossKey">The boss's defeat key, e.g. defeated_gdking. Any case.</param>
         /// <param name="extraStars">How many stars on top of the record's.</param>
@@ -104,5 +104,5 @@ namespace Vandi
         {
             return Summon.IsHarder(boss);
         }
-}
+    }
 }

@@ -43,6 +43,13 @@ namespace Vandi
         /// <summary>"the summon just accepted for this boss was asked to be this many stars harder".</summary>
         private const string HarderPrefix = "vandi_harder_";
 
+        /// <summary>
+        /// The most stars one ask can add. Not balance, which is the asking mod's: a value typed into
+        /// its config must not overflow the star sum, which stamped a boss that gained no stars, or
+        /// reach the level where the game's own drop multiplier wraps round, 2^(level-1) as an int.
+        /// </summary>
+        private const int MostAsked = 10;
+
         /// <summary>The summoner, written on the boss itself so it survives the handover.</summary>
         internal static readonly int SummonerKey = "vandi_summoner".GetStableHashCode();
 
@@ -145,8 +152,9 @@ namespace Vandi
             int kills = Kills.Count(summoner, boss);
             int extra = VandiConfig.HarderBosses.Value ? asked : 0;
             int stars = StarsFor(kills) + extra;
-            if (extra > 0) nview.GetZDO().Set(HarderKey, extra);
             if (stars <= 0) return;
+
+            if (extra > 0) nview.GetZDO().Set(HarderKey, extra);
 
             // Level, not stars: the game counts level 1 as a plain creature, so two stars is
             // level three. SetLevel writes to the ZDO we own, which is what makes it stick
@@ -192,7 +200,8 @@ namespace Vandi
         /// Reads the note and removes it, so it speaks for one summon only. Removing is a message to
         /// the server, and any client may send it: RPC_RemoveGlobalKey has no permission check. Sent
         /// only when there is something to remove, since accepting one rebroadcasts every key.
-        /// A value that is not a positive number asked for nothing.
+        /// A value that is not a positive number asked for nothing, and one past MostAsked counts as
+        /// MostAsked.
         /// </summary>
         private static int TakeHarder(string boss)
         {
@@ -207,7 +216,9 @@ namespace Vandi
             zone.RemoveGlobalKey(name);
 
             int extra;
-            return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out extra) && extra > 0 ? extra : 0;
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out extra) || extra <= 0) return 0;
+
+            return extra > MostAsked ? MostAsked : extra;
         }
 
         /// <summary>

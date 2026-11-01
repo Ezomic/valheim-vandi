@@ -151,7 +151,8 @@ It can also ask for a harder summon, and tell which bosses came from one:
 
 With `HarderBosses` or `Enabled` off an ask does nothing and no boss is ever stamped, so whatever a
 mod hands out for the harder fight does not come for free. So does an ask for a boss `CountsKillsOf`
-says no to, or for less than one star.
+says no to, or for less than one star. More than ten stars counts as ten, which is a guard against a
+typed number and not a balance decision.
 
 **An ask lasts until the next accepted summon of that boss.** The altar's owner may be another
 machine, so an ask travels as a global key, `vandi_harder_<bosskey>`, the same handover as the

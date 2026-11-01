@@ -104,5 +104,20 @@ printed harder=no stamp=0 level=2 yes
 mod vandiprobe asked defeated_eikthyr
 until 10 asked=none
 
+# A number nobody should have asked for: held at ten, so one kill's star plus ten is level 12. The sum
+# used to overflow here and stamp a boss that gained no stars at all.
+banish Eikthyr 80
+wait 2
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 1
+key vandi_harder_defeated_eikthyr 2147483647
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 12 80
+mod vandiprobe boss Eikthyr
+printed harder=yes stamp=10 level=12 yes
+
 banish Eikthyr 300
 unkey vandi_p_$player_defeated_eikthyr
