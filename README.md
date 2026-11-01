@@ -244,6 +244,12 @@ standing by gained nothing, although on that run its machine owned both bosses a
 credit. The scenarios for that run are Utangard's, since it checks three mods at once. What
 none of them covers is what a second player sees while standing in somebody else's zone.
 
+The `vandi-harder-*` scenarios and the `paired-vandi-harder-*` pair cover asking for a harder summon.
+They need `tools/VandiProbe` built into the profile, a test fixture that calls `VandiApi` by reflection
+the way another mod would and is never packaged, because a console command that asks for a harder boss
+inside Vandi's own DLL would be a free reward. The pair needs a dedicated server with Devkit on it and
+the asking character in its `adminlist.txt`.
+
 ## Bugs and ideas
 
 Both go to the site. [longhouse.thijssensoftware.nl/bugs](https://longhouse.thijssensoftware.nl/bugs)
