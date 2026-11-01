@@ -16,9 +16,9 @@ namespace Vandi
     ///
     /// Three moments, each on the machine that actually has the answer:
     ///
-    /// - <b>The offering.</b> InitiateSpawnBoss runs on the client that used the altar, which
-    ///   is the only machine that knows whose offering it was. It publishes that as a global
-    ///   key, one per boss, overwritten each time.
+    /// - <b>The offering.</b> RPC_BossSpawnInitiated reaches only the client whose offering the
+    ///   altar's owner accepted, which is the only machine that knows whose it was. It publishes
+    ///   that as a global key, one per boss, overwritten each time.
     /// - <b>The spawn.</b> DelayedSpawnBoss runs on whichever client owns the altar, which is
     ///   usually but not always the summoner. It reads the key, gives the boss its stars out
     ///   of that player's record, and stamps the id on the boss's own ZDO so the answer
@@ -29,11 +29,18 @@ namespace Vandi
     ///   since by the time a postfix runs the owner's view has already let go of the ZDO, and
     ///   the kill is recorded in the postfix (Died) from what the prefix saw.
     ///
-    /// The global key is a handover between two machines a few seconds apart, not a record.
-    /// Two people summoning the same boss type in the same five seconds would hand the second
-    /// one's stars to the first one's boss. It is written down rather than defended against:
-    /// altars are fixed places, the two players would be standing on each other, and a design
-    /// that spends a networked message on that case buys nothing anybody will ever see.
+    /// The global key is a handover between two machines a few seconds apart, not a record. It
+    /// used to be written from InitiateSpawnBoss, which only sends a request. A client that does
+    /// not own the altar cannot see the spawn delay running, so a second player offering during
+    /// it got that far, named themselves on the key and was then refused: the first player's boss
+    /// came at the second player's record and its kill went to the second player. Found on
+    /// 2026-11-01 reviewing LHM-87 and fixed in LHM-88; paired-vandi-refused-first shows it.
+    ///
+    /// Two gaps are left, written down rather than defended against because a design that spends
+    /// a networked message on them buys nothing anybody will ever see. Two altars of one boss in
+    /// use inside one delay would hand the second one's summoner to the first one's boss. And a
+    /// summoner who disconnects in the moment between the altar saying yes and the key going out
+    /// leaves the previous summoner's name on it, so that boss credits them.
     /// </summary>
     internal static class Summon
     {
@@ -59,15 +66,17 @@ namespace Vandi
         /// <summary>How far from the altar's spawn point a new boss can be and still be ours.</summary>
         private const float SpawnSearchRadius = 8f;
 
-        [HarmonyPatch(typeof(OfferingBowl), "InitiateSpawnBoss")]
+        /// <summary>
+        /// The altar's owner sends this to the sender of an offering it accepted and to nobody else,
+        /// right after SpawnBoss starts the delay, so an offering it refused never gets here. Neither
+        /// does one Utangard stopped in a biome the group has not earned, since that prefix keeps the
+        /// request from being sent at all. The key still has to reach the owner before the delay ends,
+        /// and it has the length of the delay to make a trip to the server and back.
+        /// </summary>
+        [HarmonyPatch(typeof(OfferingBowl), "RPC_BossSpawnInitiated")]
         [HarmonyPostfix]
-        private static void Offered(OfferingBowl __instance, bool __runOriginal)
+        private static void Offered(OfferingBowl __instance)
         {
-            // A postfix runs even when a prefix stopped the summon, and one does: Utangard
-            // refuses an altar in a biome the group has not earned. Recording that as an
-            // offering would name a summoner for a boss that never came.
-            if (!__runOriginal) return;
-
             if (!VandiConfig.Enabled.Value || Player.m_localPlayer == null) return;
 
             string boss = Bosses.KeyOf(__instance == null ? null : __instance.m_bossPrefab);

@@ -1,0 +1,111 @@
+#! partner paired-vandi-refused-second
+#! nostage
+# LHM-88, TWO CLIENTS ON A DEDICATED SERVER: the player whose offering the altar accepts. A second
+# player's offering, refused during the spawn delay, must change nothing about whose boss this is.
+# Needs VandiProbe on both clients and this character in the server's adminlist for `location`.
+#
+# Round 1 is the one that fails before the fix, and it has to be this shape. The refused offering
+# only reaches InitiateSpawnBoss on a client that does not own the altar, because UseItem's own
+# IsBossSpawnQueued check turns the owner away first, and only the owner's answers true. So with two
+# clients this side owns the altar and makes the first offering, and the other side offers second.
+# The two records differ so the level says whose it was: 1 kill here and none there, plus 1 star asked
+# for here, makes level 3 for this player and level 2 for the other.
+#
+# Round 2 hands the altar to the other side, so the note has to cross a machine inside the delay. That
+# side offers during the delay as well, and is turned away locally, so it never touches the note. Before
+# the fix this round still fails its numbers, but only because round 1 credited the wrong record.
+#
+# Round 3: the next accepted summon is the other player's, at the other player's record. A note that
+# stuck to the first player would fail here.
+
+unkey rig_vr_altar
+unkey rig_vr_ready1
+unkey rig_vr_r1_offered
+unkey rig_vr_r1_second
+unkey rig_vr_r1_seen
+unkey rig_vr_r1_seen_b
+unkey rig_vr_r1_killed
+unkey rig_vr_r2_owned
+unkey rig_vr_r2_ready
+unkey rig_vr_r2_second
+unkey rig_vr_r2_seen
+unkey rig_vr_r2_killed
+unkey rig_vr_r3_seen
+unkey rig_vr_done
+unkey vandi_harder_defeated_eikthyr
+unkey vandi_summon_defeated_eikthyr
+unkey vandi_p_$player_defeated_eikthyr
+clear
+god
+ghost
+wait 2
+
+location Eikthyrnir
+wait 5
+banish Eikthyr 80
+key vandi_p_$player_defeated_eikthyr 1
+key rig_vr_altar
+waitfor rig_vr_ready1 300
+
+# Round 1: this machine owns the altar and offers first. Checked from both sides before it counts.
+mod vandiprobe claimaltar
+printed altarowner=me yes
+key rig_vr_r1_owned
+waitfor rig_vr_r1_owned_b 60
+
+mod vandiprobe arm 1
+give TrophyDeer:4
+wait 1
+offer TrophyDeer
+wait 1
+key rig_vr_r1_offered
+waitfor rig_vr_r1_second 30
+
+appears Eikthyr 90 80
+wait 3
+level Eikthyr 3 80
+mod vandiprobe boss Eikthyr
+printed harder=yes stamp=1 level=3 summoned=yes mine=yes owner=me yes
+key rig_vr_r1_seen
+waitfor rig_vr_r1_seen_b 60
+
+kill Eikthyr 80
+wait 4
+keyis vandi_p_$player_defeated_eikthyr 2
+key rig_vr_r1_killed
+
+# Round 2: the other machine owns the altar. The note is cleared so a pass cannot be round 1's.
+waitfor rig_vr_r2_owned 120
+unkey vandi_summon_defeated_eikthyr
+mod vandiprobe altar
+until 20 altarowner=other
+wait 2
+offer TrophyDeer
+wait 1
+key rig_vr_r2_ready
+waitfor rig_vr_r2_second 30
+
+appears Eikthyr 90 80
+wait 3
+level Eikthyr 3 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=3 summoned=yes mine=yes owner=other yes
+key rig_vr_r2_seen
+waitfor rig_vr_r2_seen_b 60
+
+kill Eikthyr 80
+wait 4
+keyis vandi_p_$player_defeated_eikthyr 3
+key rig_vr_r2_killed
+
+# Round 3: the other player's own summon, and nothing of it lands on this record.
+waitfor rig_vr_r3_seen 120
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=1 summoned=yes mine=no owner=other yes
+key rig_vr_r3_seen_a
+waitfor rig_vr_done 120
+wait 3
+keyis vandi_p_$player_defeated_eikthyr 3
+
+banish Eikthyr 300
+unkey vandi_p_$player_defeated_eikthyr
