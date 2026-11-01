@@ -17,7 +17,9 @@ ghost
 unkey vandi_harder_defeated_eikthyr
 wait 1
 mod vandiprobe ask defeated_eikthyr 1
+printed ask=called yes
 wait 2
+keyis vandi_harder_defeated_eikthyr 1
 mod vandiprobe known
 note entries known=([0-9]+)
 note all knowntotal=([0-9]+)
