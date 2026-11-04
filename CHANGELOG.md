@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **A refused offering no longer takes the boss.** Offering at an altar while someone else's boss was
+  on its way used to name you as the summoner, although the altar turned you away and took
+  nothing. Their boss then came at your record and its kill counted for you. The summoner
+  is now written down only once the altar has accepted the offering.
 - **Another mod can ask for a harder boss.** `VandiApi.AskHarder(bossKey, extraStars)`, called on the
   machine whose offering was accepted, adds that many stars to what the summoner's record gives the
   boss, and they may pass `BossStarCap`. `VandiApi.IsHarderSummon(boss)` says whether a boss got its

@@ -183,7 +183,7 @@ What a boss does above the cap, today, is worth knowing before asking for one:
   biome lookups compare only x and z, so a crypt is Swamp and a frost cave is Mountain without
   this mod knowing what a dungeon is.
 - **The boss's stars** are set by whichever client owns the altar, reading who made the
-  offering, and the summoner's id is stamped on the boss itself so the credit survives the
+  offering it accepted, and the summoner's id is stamped on the boss itself so the credit survives the
   handover to a different machine.
 - **The kill is recorded** by the client that owned the boss, from that stamp. A boss that was
   never summoned through an altar credits nobody.
@@ -244,7 +244,8 @@ standing by gained nothing, although on that run its machine owned both bosses a
 credit. The scenarios for that run are Utangard's, since it checks three mods at once. What
 none of them covers is what a second player sees while standing in somebody else's zone.
 
-The `vandi-harder-*` scenarios and the `paired-vandi-harder-*` pair cover asking for a harder summon.
+The `vandi-harder-*` scenarios and the `paired-vandi-harder-*` pair cover asking for a harder summon,
+and the `paired-vandi-refused-*` pair covers a second player's offering refused during the delay.
 They need `tools/VandiProbe` built into the profile, a test fixture that calls `VandiApi` by reflection
 the way another mod would and is never packaged, because a console command that asks for a harder boss
 inside Vandi's own DLL would be a free reward. The pair needs a dedicated server with Devkit on it and

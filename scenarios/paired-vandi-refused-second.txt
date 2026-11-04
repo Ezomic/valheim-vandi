@@ -1,0 +1,81 @@
+#! partner paired-vandi-refused-first
+#! nostage
+# LHM-88, TWO CLIENTS: the player whose offering is refused. See paired-vandi-refused-first. This side
+# never gains a boss it did not get, and `carrying` is what proves each offering really was refused
+# rather than arriving after the delay, when it would have been accepted and the trophies taken.
+
+unkey rig_vr_r1_owned
+unkey rig_vr_r1_owned_b
+unkey rig_vr_r2_seen_b
+unkey rig_vr_r3_seen_a
+unkey vandi_p_$player_defeated_eikthyr
+clear
+god
+ghost
+give TrophyDeer:2
+waitfor rig_vr_altar 300
+partner 6 2
+wait 4
+key rig_vr_ready1
+
+# Round 1: the other machine owns the altar. This offering gets as far as InitiateSpawnBoss, is sent to
+# the owner, and is refused there.
+waitfor rig_vr_r1_owned 60
+mod vandiprobe altar
+until 20 altarowner=other
+key rig_vr_r1_owned_b
+
+waitfor rig_vr_r1_offered 60
+offer TrophyDeer
+wait 2
+carrying TrophyDeer 2
+key rig_vr_r1_second
+
+waitfor rig_vr_r1_seen 120
+mod vandiprobe boss Eikthyr
+printed harder=yes stamp=1 level=3 summoned=yes mine=no owner=other yes
+key rig_vr_r1_seen_b
+
+waitfor rig_vr_r1_killed 60
+console vandi
+printed vandi defeated_eikthyr=0 yes
+
+# Round 2: this machine owns the altar, spawns the boss for the other player, and turns its own second
+# offering away before it leaves this machine.
+mod vandiprobe claimaltar
+printed altarowner=me yes
+key rig_vr_r2_owned
+
+waitfor rig_vr_r2_ready 60
+offer TrophyDeer
+wait 1
+carrying TrophyDeer 2
+key rig_vr_r2_second
+
+appears Eikthyr 90 80
+wait 3
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=3 summoned=yes mine=no owner=me yes
+waitfor rig_vr_r2_seen 60
+key rig_vr_r2_seen_b
+
+waitfor rig_vr_r2_killed 60
+console vandi
+printed vandi defeated_eikthyr=0 yes
+
+# Round 3: this player's own summon, at this player's record, which is still empty.
+offer TrophyDeer
+appears Eikthyr 90 80
+wait 3
+level Eikthyr 1 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=1 summoned=yes mine=yes owner=me yes
+key rig_vr_r3_seen
+waitfor rig_vr_r3_seen_a 60
+
+kill Eikthyr 80
+wait 4
+keyis vandi_p_$player_defeated_eikthyr 1
+key rig_vr_done
+wait 5
+unkey vandi_p_$player_defeated_eikthyr

@@ -31,6 +31,10 @@ namespace VandiProbe
         private static int _armedStars;
         private static BaseUnityPlugin _vandi;
         private static bool _registered;
+        private static string _noteKey;
+        private static string _noteBefore;
+        private static float _delay;
+        private static float _delayStarted;
 
         private void Awake()
         {
@@ -67,6 +71,36 @@ namespace VandiProbe
 
                 string problem = Ask(boss.m_defeatSetGlobalKey, stars);
                 UnityEngine.Debug.Log("vandiprobe: armed ask for " + boss.m_defeatSetGlobalKey + " at " + stars + ": " + (problem ?? "called"));
+            }
+
+            // The owner starts the delay here, and the summoner's note has to reach this machine
+            // before it runs out. These two say how much of the delay the trip took.
+            [HarmonyPatch(typeof(OfferingBowl), "SpawnBoss")]
+            [HarmonyPostfix]
+            private static void DelayStarted(OfferingBowl __instance)
+            {
+                Character boss = __instance == null || __instance.m_bossPrefab == null ? null : __instance.m_bossPrefab.GetComponent<Character>();
+                if (boss == null) return;
+
+                _noteKey = "vandi_summon_" + boss.m_defeatSetGlobalKey.ToLowerInvariant();
+                _delay = __instance.m_spawnBossDelay;
+                _delayStarted = Time.time;
+                if (!ZoneSystem.instance.GetGlobalKey(_noteKey, out _noteBefore)) _noteBefore = null;
+            }
+
+            [HarmonyPatch(typeof(ZoneSystem), "RPC_GlobalKeys")]
+            [HarmonyPostfix]
+            private static void KeysArrived()
+            {
+                if (_noteKey == null) return;
+
+                string note;
+                if (!ZoneSystem.instance.GetGlobalKey(_noteKey, out note) || note == _noteBefore) return;
+
+                UnityEngine.Debug.Log("vandiprobe: note " + _noteKey + " reached the altar's owner "
+                    + (Time.time - _delayStarted).ToString("0.000", CultureInfo.InvariantCulture)
+                    + "s into a delay of " + _delay.ToString("0.0", CultureInfo.InvariantCulture) + "s.");
+                _noteKey = null;
             }
         }
 
@@ -255,7 +289,9 @@ namespace VandiProbe
 
             if (claim) nview.ClaimOwnership();
 
-            term.AddString("altarowner=" + (nview.IsOwner() ? "me" : "other"));
+            term.AddString("altarowner=" + (nview.IsOwner() ? "me" : "other")
+                + " delay=" + altar.m_spawnBossDelay.ToString("0.0", CultureInfo.InvariantCulture)
+                + " boss=" + (altar.m_bossPrefab == null ? "none" : altar.m_bossPrefab.name));
         }
     }
 }
