@@ -40,8 +40,21 @@ namespace Vandi
         /// <summary>"the last offering for this boss was made by", as a player id.</summary>
         private const string SummonPrefix = "vandi_summon_";
 
+        /// <summary>"the summon just accepted for this boss was asked to be this many stars harder".</summary>
+        private const string HarderPrefix = "vandi_harder_";
+
+        /// <summary>
+        /// The most stars one ask can add. Not balance, which is the asking mod's: a value typed into
+        /// its config must not overflow the star sum, which stamped a boss that gained no stars, or
+        /// reach the level where the game's own drop multiplier wraps round, 2^(level-1) as an int.
+        /// </summary>
+        private const int MostAsked = 10;
+
         /// <summary>The summoner, written on the boss itself so it survives the handover.</summary>
         internal static readonly int SummonerKey = "vandi_summoner".GetStableHashCode();
+
+        /// <summary>The stars asked for, on the boss itself. Absent is an ordinary summon.</summary>
+        private static readonly int HarderKey = "vandi_harder".GetStableHashCode();
 
         /// <summary>How far from the altar's spawn point a new boss can be and still be ours.</summary>
         private const float SpawnSearchRadius = 8f;
@@ -76,6 +89,33 @@ namespace Vandi
                 VandiPlugin.Log.LogInfo("Offering made for " + boss + " by " + id + ".");
         }
 
+        /// <summary>
+        /// How a stale ask expires. An ask whose boss never came, because the altar's owner left
+        /// inside the spawn delay and the delay went with them, would otherwise sit in the world's
+        /// keys and make the next plain summon of that boss harder, for whoever made it.
+        ///
+        /// A key cannot say how old it is: every value it has ever held is kept in the saved player
+        /// profile (see AskHarder), so a timestamp in it would grow that list once per ask. So the
+        /// order of events does the work. SpawnBoss runs on the altar's owner and only for an
+        /// offering it accepted, and the call that lets a mod ask, RPC_BossSpawnInitiated, is sent
+        /// after it. Whatever is lying here at this moment is therefore older than this summon, and
+        /// an ask for this summon arrives behind the removal, on the same route through the server.
+        ///
+        /// InitiateSpawnBoss would be the wrong place. It runs before the altar has said yes, so a
+        /// second player offering during somebody's spawn delay would wipe their ask and be turned
+        /// away anyway. And on the machine that owns the altar the ask lands inside that call, so a
+        /// postfix there would remove the very ask it was clearing the way for.
+        /// </summary>
+        [HarmonyPatch(typeof(OfferingBowl), "SpawnBoss")]
+        [HarmonyPrefix]
+        private static void Accepting(OfferingBowl __instance)
+        {
+            if (!VandiConfig.Enabled.Value || __instance == null) return;
+
+            string boss = Bosses.KeyOf(__instance.m_bossPrefab);
+            if (boss != null) TakeHarder(boss);
+        }
+
         [HarmonyPatch(typeof(OfferingBowl), "DelayedSpawnBoss")]
         [HarmonyPostfix]
         // ___m_bossSpawnPoint is Harmony's private-field injection: the point the altar
@@ -87,6 +127,10 @@ namespace Vandi
 
             string boss = Bosses.KeyOf(__instance.m_bossPrefab);
             if (boss == null) return;
+
+            // Before anything below can return: an ask speaks for this summon whether or not the
+            // boss turns out to be findable.
+            int asked = TakeHarder(boss);
 
             long summoner = Summoner(boss);
             if (summoner == 0L) return;
@@ -102,9 +146,15 @@ namespace Vandi
             // turning HarderBosses off must not also stop anyone earning anything.
             nview.GetZDO().Set(SummonerKey, summoner);
 
+            // On top of StarsFor and so past BossStarCap, or a veteran at the cap would get nothing
+            // harder. With HarderBosses off there are no stars and so no stamp, because whatever a
+            // mod hands out for the harder fight must not come for free.
             int kills = Kills.Count(summoner, boss);
-            int stars = StarsFor(kills);
+            int extra = VandiConfig.HarderBosses.Value ? asked : 0;
+            int stars = StarsFor(kills) + extra;
             if (stars <= 0) return;
+
+            if (extra > 0) nview.GetZDO().Set(HarderKey, extra);
 
             // Level, not stars: the game counts level 1 as a plain creature, so two stars is
             // level three. SetLevel writes to the ZDO we own, which is what makes it stick
@@ -116,7 +166,72 @@ namespace Vandi
                 character.SetMaxHealth(character.GetMaxHealth() * more);
 
             VandiPlugin.Log.LogInfo("Summoned " + boss + " at " + stars + " star(s) for player "
-                + summoner + ", who has killed it " + kills + " time(s), at " + character.GetMaxHealth().ToString("0") + " health.");
+                + summoner + ", who has killed it " + kills + " time(s), " + extra + " asked for, at "
+                + character.GetMaxHealth().ToString("0") + " health.");
+        }
+
+        /// <summary>
+        /// Leaves a note for the machine that will spawn this boss, which may not be this one: the
+        /// same handover as the summoner's own note, and with the same trouble if two altars of one
+        /// boss are in use at once.
+        ///
+        /// Every value a global key has held stays in the saved player profile, as its own entry in
+        /// m_knownWorldKeys. The stars are few and do not change from ask to ask, so this adds one
+        /// entry per boss and star count and then no more.
+        /// </summary>
+        internal static void AskHarder(string bossKey, int extraStars)
+        {
+            ZoneSystem zone = ZoneSystem.instance;
+            if (zone == null || extraStars <= 0 || string.IsNullOrEmpty(bossKey)) return;
+            if (!VandiConfig.Enabled.Value || !VandiConfig.HarderBosses.Value) return;
+
+            // Only a boss this mod is about, or the note is one nobody will ever take: any other
+            // altar's summon removes it, but a typed name with no altar would stay in the world.
+            string boss = bossKey.Trim().ToLowerInvariant();
+            if (!Bosses.IsBossKey(boss)) return;
+
+            zone.SetGlobalKey(HarderPrefix + boss + " " + extraStars.ToString(CultureInfo.InvariantCulture));
+
+            if (VandiConfig.Verbose.Value)
+                VandiPlugin.Log.LogInfo("Asked for " + extraStars + " more star(s) on the next " + boss + ".");
+        }
+
+        /// <summary>
+        /// Reads the note and removes it, so it speaks for one summon only. Removing is a message to
+        /// the server, and any client may send it: RPC_RemoveGlobalKey has no permission check. Sent
+        /// only when there is something to remove, since accepting one rebroadcasts every key.
+        /// A value that is not a positive number asked for nothing, and one past MostAsked counts as
+        /// MostAsked.
+        /// </summary>
+        private static int TakeHarder(string boss)
+        {
+            ZoneSystem zone = ZoneSystem.instance;
+            if (zone == null) return 0;
+
+            string name = HarderPrefix + boss;
+
+            string value;
+            if (!zone.GetGlobalKey(name, out value)) return 0;
+
+            zone.RemoveGlobalKey(name);
+
+            int extra;
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out extra) || extra <= 0) return 0;
+
+            return extra > MostAsked ? MostAsked : extra;
+        }
+
+        /// <summary>
+        /// The stamp on the boss. False for null and for a view with no ZDO, which is how an owner's
+        /// boss looks once OnDeath has let go of it.
+        /// </summary>
+        internal static bool IsHarder(Character boss)
+        {
+            if (boss == null) return false;
+
+            ZNetView nview = boss.GetComponent<ZNetView>();
+
+            return nview != null && nview.IsValid() && nview.GetZDO().GetInt(HarderKey) > 0;
         }
 
         /// <summary>

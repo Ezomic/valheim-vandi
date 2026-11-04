@@ -1,0 +1,123 @@
+#! nostage
+# LHM-87: what a caller can get wrong, and what it costs: nothing, and nothing left behind.
+#
+# Needs VandiProbe. The readings are harderkeys= and globalkeys=, the world's whole list, because a
+# refused ask that published under another spelling would pass any check of the one right key. Every
+# refusal is checked against the ask that follows them, which is the same call and does publish, so
+# these are refusals and not a probe that never reached the world.
+clear
+god
+ghost
+
+unkey vandi_harder_defeated_eikthyr
+wait 1
+mod vandiprobe asked defeated_eikthyr
+note keys globalkeys=([0-9]+)
+printed harderkeys=0 yes
+
+mod vandiprobe ask null 1
+printed ask=called yes
+mod vandiprobe ask empty 1
+printed ask=called yes
+mod vandiprobe ask blank 1
+printed ask=called yes
+mod vandiprobe ask defeated_nothingatall 1
+printed ask=called yes
+mod vandiprobe ask killedbat 1
+printed ask=called yes
+mod vandiprobe ask defeated_eikthyr 0
+printed ask=called yes
+mod vandiprobe ask defeated_eikthyr -1
+printed ask=called yes
+wait 2
+mod vandiprobe asked defeated_eikthyr
+printed asked=none harderkeys=0 yes
+went keys globalkeys=([0-9]+) same
+
+# Any case and stray spaces reach the one key the altar reads.
+mod vandiprobe ask DeFeAtEd_EiKtHyR 1
+printed ask=called yes
+wait 2
+keyis vandi_harder_defeated_eikthyr 1
+mod vandiprobe asked defeated_eikthyr
+printed harderkeys=1 yes
+went keys globalkeys=([0-9]+) +1
+unkey vandi_harder_defeated_eikthyr
+wait 1
+
+mod vandiprobe ask padded:Defeated_Eikthyr 2
+wait 2
+keyis vandi_harder_defeated_eikthyr 2
+unkey vandi_harder_defeated_eikthyr
+wait 1
+
+# IsHarderSummon on nothing, on a view with no ZDO, and on a creature nothing ever stamped.
+mod vandiprobe isharder null
+printed isharder=no yes
+mod vandiprobe isharder noview Eikthyr
+printed isharder=no valid=no yes
+spawn Boar
+wait 1
+mod vandiprobe boss Boar
+printed harder=no stamp=0 yes
+banish Boar 40
+
+# A boss the world spawned rather than an altar: no summoner, no stamp.
+spawn Eikthyr
+wait 2
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=1 summoned=no yes
+banish Eikthyr 80
+
+# A value nobody should have written. Not a number and below one both ask for nothing, on a boss with
+# one kill on record, so level 2 shows a stray negative cannot take a star away either. Written during
+# the spawn delay, as the off scenario does, because SpawnBoss would clear them otherwise.
+unkey vandi_p_$player_defeated_eikthyr
+key vandi_p_$player_defeated_eikthyr 1
+wait 1
+location Eikthyrnir
+wait 3
+banish Eikthyr 80
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 1
+key vandi_harder_defeated_eikthyr -3
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 2 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=2 yes
+banish Eikthyr 80
+wait 2
+
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 1
+key vandi_harder_defeated_eikthyr lots
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 2 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=2 yes
+mod vandiprobe asked defeated_eikthyr
+until 10 asked=none
+
+# A number nobody should have asked for: held at ten, so one kill's star plus ten is level 12. The sum
+# used to overflow here and stamp a boss that gained no stars at all.
+banish Eikthyr 80
+wait 2
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 1
+key vandi_harder_defeated_eikthyr 2147483647
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 12 80
+mod vandiprobe boss Eikthyr
+printed harder=yes stamp=10 level=12 yes
+
+banish Eikthyr 300
+unkey vandi_p_$player_defeated_eikthyr

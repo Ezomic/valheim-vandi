@@ -1,0 +1,62 @@
+#! nostage
+# LHM-87: an ask whose boss never came does not make the next plain summon harder.
+#
+# The ask is made with no offering at all, which is the state an altar owner leaving during the spawn
+# delay leaves behind: a key in the world and no boss coming. Needs VandiProbe.
+#
+# Why a pass means what it says: `keyis` proves the stale key is really there first, so level 1 and
+# harder=no are the expiry at work and not an ask that was refused. The last section is a fresh ask on
+# top of a stale one with different stars, and its value decides the level, so it cannot pass by
+# clearing everything: the clear runs first and the fresh ask survives it. A clear in the wrong place
+# fails this section in singleplayer, where the ask lands inside InitiateSpawnBoss.
+clear
+god
+ghost
+
+unkey vandi_p_$player_defeated_eikthyr
+unkey vandi_harder_defeated_eikthyr
+wait 1
+
+location Eikthyrnir
+wait 3
+banish Eikthyr 80
+
+mod vandiprobe ask defeated_eikthyr 2
+printed ask=called yes
+wait 1
+keyis vandi_harder_defeated_eikthyr 2
+
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+
+# Gone at the acceptance, not at the spawn.
+wait 1
+mod vandiprobe asked defeated_eikthyr
+printed asked=none yes
+
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 1 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=1 summoned=yes yes
+banish Eikthyr 80
+wait 2
+
+# Stale at two stars, fresh at one: the boss is one star harder.
+mod vandiprobe ask defeated_eikthyr 2
+wait 1
+keyis vandi_harder_defeated_eikthyr 2
+mod vandiprobe arm 1
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 1
+keyis vandi_harder_defeated_eikthyr 1
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 2 80
+mod vandiprobe boss Eikthyr
+printed harder=yes stamp=1 level=2 yes
+
+banish Eikthyr 300

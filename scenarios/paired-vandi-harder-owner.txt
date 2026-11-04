@@ -1,0 +1,53 @@
+#! partner paired-vandi-harder-asker
+#! nostage
+# LHM-87, TWO CLIENTS: the side that owns the altar and spawns the boss. See paired-vandi-harder-asker.
+# This machine reads and removes the other player's ask as a client on a dedicated server, stamps the
+# boss, and gains no credit for a kill it spawned.
+
+unkey vandi_p_$player_defeated_eikthyr
+clear
+god
+ghost
+waitfor rig_vh_altar 300
+partner 6 2
+wait 4
+
+# Held until the ask is over. ZDOMan only hands a ZDO on when its owner has left the area.
+mod vandiprobe claimaltar
+printed altarowner=me yes
+key rig_vh_owned
+
+# Round 1: spawned here, for the other player.
+waitfor rig_vh_r1_seen 200
+mod vandiprobe boss Eikthyr
+printed harder=yes stamp=1 level=3 summoned=yes mine=no owner=me yes
+mod vandiprobe altar
+printed altarowner=me yes
+key rig_vh_r2
+
+# Round 2: the same altar and machine, with nothing asked.
+waitfor rig_vh_r2_seen 200
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=3 summoned=yes mine=no owner=me yes
+
+# The kill was the other player's summon, spawned and owned here. Nothing on this side's record.
+console vandi
+printed vandi defeated_eikthyr=0 yes
+key rig_vh_r3
+
+# Round 3: the other player's stale ask must not reach this side's own summon.
+waitfor rig_vh_r3_stale 120
+keyis vandi_harder_defeated_eikthyr 2
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+wait 1
+mod vandiprobe asked defeated_eikthyr
+until 15 asked=none
+appears Eikthyr 90 80
+wait 3
+level Eikthyr 1 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=1 summoned=yes mine=yes owner=me yes
+key rig_vh_done
+wait 5

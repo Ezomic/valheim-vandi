@@ -1,0 +1,65 @@
+#! nostage
+# LHM-87: an accepted offering that asks for one star more gets it, stamped on the boss, and the next
+# summon is an ordinary one.
+#
+# Needs the VandiProbe DLL in the profile (tools\VandiProbe), which calls VandiApi by reflection the
+# way Hausi does. `arm` asks from a postfix on RPC_BossSpawnInitiated, Hausi's own seam, so the ask
+# really does arrive inside the altar's call chain. In singleplayer that is inside InitiateSpawnBoss
+# itself, which is what a clear placed in the wrong spot would eat.
+#
+# Why a pass means what it says: one kill on record is level 2, so level 3 can only come from the ask.
+# The second summon has two kills and is level 3 by the record alone, so the same level with harder=no
+# and the same maxhp shows the stamp is what differs and the health multiplier treats them alike.
+clear
+god
+ghost
+
+unkey vandi_p_$player_defeated_eikthyr
+unkey vandi_harder_defeated_eikthyr
+key vandi_p_$player_defeated_eikthyr 1
+wait 1
+
+location Eikthyrnir
+wait 3
+banish Eikthyr 80
+
+mod vandiprobe arm 1
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+
+# Published between the acceptance and the spawn, with the stars as its value.
+wait 1
+keyis vandi_harder_defeated_eikthyr 1
+
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 3 80
+mod vandiprobe boss Eikthyr
+printed harder=yes stamp=1 level=3 summoned=yes mine=yes yes
+note hp maxhp=([0-9]+)
+logged 1 asked for yes
+
+# Read and removed, so it speaks for one summon.
+mod vandiprobe asked defeated_eikthyr
+until 10 asked=none
+printed harderkeys=0 yes
+
+# Credit is the summoner's as for any other boss, and the record gains one kill, not one per star.
+kill Eikthyr 80
+wait 3
+keyis vandi_p_$player_defeated_eikthyr 2
+
+# The next summon asks for nothing, and gets nothing more than two kills earn.
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+appears Eikthyr 90 80
+wait 2
+level Eikthyr 3 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=3 summoned=yes yes
+went hp maxhp=([0-9]+) same
+
+banish Eikthyr 300
+unkey vandi_p_$player_defeated_eikthyr

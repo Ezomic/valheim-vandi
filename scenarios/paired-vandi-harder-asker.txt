@@ -1,0 +1,102 @@
+#! partner paired-vandi-harder-owner
+#! nostage
+# LHM-87, TWO CLIENTS ON A DEDICATED SERVER: the side that makes the offering and asks. The other half
+# owns the altar, so everything the ask has to do crosses a machine. Neither proves anything alone.
+# Needs VandiProbe on both clients and this character in the server's adminlist for `location`.
+#
+# The altar's owner is checked from both sides before any of it counts, because a world's altar goes to
+# whoever is nearest and a run where it went to the asker would pass as singleplayer does.
+#
+# Round 1: this side asks, the owner spawns. A second offering during the delay is turned away by the
+# owner, and must not wipe the ask: this is what a clear in InitiateSpawnBoss would break.
+# Round 2: the next summon asks for nothing.
+# Round 3: this side's ask goes stale, and the owner's own summon must not pay for it. Isolation: one
+# player's forgotten ask does not harden another player's boss, or stamp it.
+#
+# Each client's removal travels as a message to the server, and every `until asked=none` is read on the
+# client's local copy, so it only reads none once the server has accepted the removal and rebroadcast.
+
+unkey rig_vh_altar
+unkey rig_vh_owned
+unkey rig_vh_r1_seen
+unkey rig_vh_r2
+unkey rig_vh_r2_seen
+unkey rig_vh_r3
+unkey rig_vh_r3_stale
+unkey rig_vh_done
+unkey vandi_harder_defeated_eikthyr
+unkey vandi_p_$player_defeated_eikthyr
+clear
+god
+ghost
+wait 2
+
+location Eikthyrnir
+wait 5
+banish Eikthyr 80
+key vandi_p_$player_defeated_eikthyr 1
+key rig_vh_altar
+waitfor rig_vh_owned 300
+# Until, because the rig key arrives before the altar's ZDO does: the first run read its own stale copy.
+mod vandiprobe altar
+until 20 altarowner=other
+
+# Round 1.
+mod vandiprobe arm 1
+give TrophyDeer:4
+wait 1
+offer TrophyDeer
+wait 1
+keyis vandi_harder_defeated_eikthyr 1
+
+# The owner's IsBossSpawnQueued is true and this machine's is not, so this reaches the owner and is refused.
+offer TrophyDeer
+wait 1
+keyis vandi_harder_defeated_eikthyr 1
+carrying TrophyDeer 2
+
+appears Eikthyr 90 80
+wait 3
+level Eikthyr 3 80
+mod vandiprobe boss Eikthyr
+printed harder=yes stamp=1 level=3 summoned=yes mine=yes owner=other yes
+mod vandiprobe asked defeated_eikthyr
+until 15 asked=none
+printed harderkeys=0 yes
+key rig_vh_r1_seen
+
+waitfor rig_vh_r2 120
+kill Eikthyr 80
+wait 4
+keyis vandi_p_$player_defeated_eikthyr 2
+
+# Round 2.
+give TrophyDeer:2
+wait 1
+offer TrophyDeer
+appears Eikthyr 90 80
+wait 3
+level Eikthyr 3 80
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=3 summoned=yes mine=yes owner=other yes
+key rig_vh_r2_seen
+
+waitfor rig_vh_r3 120
+banish Eikthyr 80
+wait 2
+
+# Round 3: an ask with no offering, left lying for the owner's summon.
+mod vandiprobe ask defeated_eikthyr 2
+wait 2
+keyis vandi_harder_defeated_eikthyr 2
+key rig_vh_r3_stale
+
+waitfor rig_vh_done 200
+mod vandiprobe asked defeated_eikthyr
+until 15 asked=none
+mod vandiprobe boss Eikthyr
+printed harder=no stamp=0 level=1 summoned=yes mine=no yes
+
+banish Eikthyr 300
+keyis vandi_p_$player_defeated_eikthyr 2
+unkey vandi_p_$player_defeated_eikthyr

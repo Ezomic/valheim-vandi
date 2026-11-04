@@ -1,8 +1,8 @@
 namespace Vandi
 {
     /// <summary>
-    /// What another mod may ask Vandi, and so far the only thing: how many times a player has
-    /// killed a boss.
+    /// What another mod may ask Vandi: how many times a player has killed a boss, and, for the one
+    /// write at the end, for the next summon of a boss to be harder.
     ///
     /// It exists for Malmr, which opens a metal's veins only once its biome's boss has been
     /// beaten at one star - Robbin's rule of 2026-09-26. Vandi brings a boss back one star
@@ -18,9 +18,9 @@ namespace Vandi
     /// business again, and a rename that forgets this file fails the build instead of a
     /// player's evening. That is why Kills stays internal and this is the door.
     ///
-    /// Everything here only reads. Writing a kill is the altar's and the corpse's job, on the
-    /// machines that have the answer - see Summon - and a second writer would be a second
-    /// story about the same evening.
+    /// Nothing here writes a kill. That is the altar's and the corpse's job, on the machines that
+    /// have the answer - see Summon - and a second writer would be a second story about the same
+    /// evening.
     ///
     /// <b>The record is answered whether or not Vandi is Enabled.</b> A kill is a fact about
     /// the world, and the switch means "decide nothing new", not "forget". Hiding the record
@@ -71,6 +71,38 @@ namespace Vandi
             if (string.IsNullOrEmpty(bossKey)) return false;
 
             return Bosses.IsBossKey(bossKey.Trim().ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// Asks for the summon just accepted at this boss's altar to arrive this many stars above
+        /// what the summoner's record gives it. The stars may pass BossStarCap. The summon stays
+        /// the summoner's own: the health multiplier and the kill credit apply as to any other.
+        ///
+        /// Call it on the machine whose offering was accepted, from a postfix on
+        /// OfferingBowl.RPC_BossSpawnInitiated, which only that machine receives and which arrives
+        /// inside the altar's spawn delay. Asked from anywhere else it may be cleared by the next
+        /// accepted summon before it counts, or harden a boss nobody meant it for.
+        ///
+        /// Does nothing for a boss CountsKillsOf says no to, for stars below one, or while Enabled or
+        /// HarderBosses is off. More than ten stars counts as ten.
+        /// </summary>
+        /// <param name="bossKey">The boss's defeat key, e.g. defeated_gdking. Any case.</param>
+        /// <param name="extraStars">How many stars on top of the record's.</param>
+        public static void AskHarder(string bossKey, int extraStars)
+        {
+            Summon.AskHarder(bossKey, extraStars);
+        }
+
+        /// <summary>
+        /// Whether this boss arrived with stars someone asked for, so that a mod can reward the
+        /// harder fight without knowing how it is written down. True on every machine that has the
+        /// boss, once it has spawned. It reads the boss's ZDO, which is gone once OnDeath has run on
+        /// the machine that owns it, so read it from CharacterDrop.GenerateDropList or a prefix on
+        /// OnDeath. False for null and for a boss with no ZDO.
+        /// </summary>
+        public static bool IsHarderSummon(Character boss)
+        {
+            return Summon.IsHarder(boss);
         }
     }
 }

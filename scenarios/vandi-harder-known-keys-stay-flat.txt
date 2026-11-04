@@ -1,0 +1,45 @@
+#! nostage
+# LHM-87: asking again and again does not grow the saved player profile.
+#
+# Every global key a world has shown a player, value included, is kept in their profile as one entry
+# in m_knownWorldKeys and never removed. A value that changes per ask would add one entry per ask for
+# ever. Needs VandiProbe, which counts them.
+#
+# Why a pass means what it says: `known` is read after the first ask to prove the entry is really
+# there, or a count that never moved could mean the probe reads the wrong dictionary. knowntotal then
+# holds across three more asks and removals, and it covers every key, so a helper key with a growing
+# value is caught as well as this one. The prefix-matching `known` needs the key to have been seen at
+# least once, hence the wait.
+clear
+god
+ghost
+
+unkey vandi_harder_defeated_eikthyr
+wait 1
+mod vandiprobe ask defeated_eikthyr 1
+printed ask=called yes
+wait 2
+keyis vandi_harder_defeated_eikthyr 1
+mod vandiprobe known
+note entries known=([0-9]+)
+note all knowntotal=([0-9]+)
+unkey vandi_harder_defeated_eikthyr
+wait 2
+
+mod vandiprobe ask defeated_eikthyr 1
+wait 2
+unkey vandi_harder_defeated_eikthyr
+wait 2
+mod vandiprobe ask defeated_eikthyr 1
+wait 2
+unkey vandi_harder_defeated_eikthyr
+wait 2
+mod vandiprobe ask defeated_eikthyr 1
+wait 2
+unkey vandi_harder_defeated_eikthyr
+wait 2
+
+mod vandiprobe known
+went entries known=([0-9]+) same
+went all knowntotal=([0-9]+) same
+printed known=0 no
