@@ -42,6 +42,16 @@ namespace Vandi
             _outer = SpecialConfig.Bind(cfg, s, "OuterRadius", 12f, "Distance of the last spot from her, in metres.");
         }
 
+        private const float SpotRadius = 1.6f;
+
+        // Spot N is marked with the first warning plus N intervals, so its warning may run that much past the warning's own range.
+        internal override bool Fits(SpecialCall c)
+        {
+            AcceptableValueRange<float> warning = SpecialConfig.Range(_warning);
+            return c.A == SpotRadius && SpecialConfig.Finite(c.B) && c.B >= warning.MinValue
+                && c.B <= warning.MaxValue + c.N * SpecialConfig.Range(_interval).MaxValue;
+        }
+
         internal override IEnumerator Run(SpecialRun run)
         {
             if (!Ground.CanDraw) yield break;
@@ -67,7 +77,7 @@ namespace Vandi
                 float radius = Mathf.Lerp(_inner.Value, _outer.Value, k);
                 spots[i] = SpecialRun.OnGround(centre + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius);
 
-                run.Send(new SpecialCall { At = spots[i], A = 1.6f, B = warning + i * interval, N = i });
+                run.Send(new SpecialCall { At = spots[i], A = SpotRadius, B = warning + i * interval, N = i });
             }
 
             yield return run.Pause(warning + SpecialRun.Lag);

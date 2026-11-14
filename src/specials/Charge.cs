@@ -48,6 +48,19 @@ namespace Vandi
             _minRange = SpecialConfig.Bind(cfg, s, "MinimumDistance", 8f, "He will not start a charge at a target closer than this, so it never begins on top of you.");
         }
 
+        internal override bool Fits(SpecialCall c)
+        {
+            switch (c.Phase)
+            {
+                case 0: return SpecialConfig.Fits(c.A, _track);
+                case 1:
+                    return SpecialConfig.Fits(c.A, _length) && SpecialConfig.Fits(c.B, _lock)
+                        && SpecialConfig.Fits(c.C, _width) && SpecialConfig.Fits(c.D, _burst);
+                case 2: return SpecialConfig.Fits(c.A, _burst);
+                default: return false;
+            }
+        }
+
         internal override IEnumerator Run(SpecialRun run)
         {
             if (!Ground.CanDraw) yield break;

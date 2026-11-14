@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **A boss move's warning is only drawn when it comes from that boss.** The message that draws a
+  special move on every screen was taken from anyone, with any numbers in it, so one forged message
+  could ask for millions of spokes or a ring that never stops and freeze every other player. It is now
+  ignored unless it comes from the machine that owns the boss, and unless every number in it is one
+  that move's own settings could have produced. Real moves are unchanged.
 - **A refused offering no longer takes the boss.** Offering at an altar while someone else's boss was
   on its way used to name you as the summoner, although the altar turned you away and took
   nothing. Their boss then came at your record and its kill counted for you. The summoner

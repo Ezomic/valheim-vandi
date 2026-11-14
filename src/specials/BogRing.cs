@@ -41,6 +41,12 @@ namespace Vandi
             _push = SpecialConfig.Bind(cfg, s, "Knockback", 15f, "Push on a player the ring hits.");
         }
 
+        internal override bool Fits(SpecialCall c)
+        {
+            return SpecialConfig.Fits(c.A, _radius) && SpecialConfig.Fits(c.B, _warning)
+                && SpecialConfig.Fits(c.C, _speed) && SpecialConfig.Fits(c.D, _band);
+        }
+
         internal override IEnumerator Run(SpecialRun run)
         {
             if (!Ground.CanDraw) yield break;
