@@ -48,6 +48,12 @@ namespace Vandi
             return Quaternion.Euler(0f, 360f * index / count, 0f) * first;
         }
 
+        internal override bool Fits(SpecialCall c)
+        {
+            return SpecialConfig.Fits(c.N, _spokes) && SpecialConfig.Fits(c.A, _length) && SpecialConfig.Fits(c.B, _warning)
+                && SpecialConfig.Fits(c.C, _width) && SpecialConfig.Fits(c.D, _inner);
+        }
+
         internal override IEnumerator Run(SpecialRun run)
         {
             if (!Ground.CanDraw) yield break;

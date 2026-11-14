@@ -41,6 +41,11 @@ namespace Vandi
                 + "of the victim's health it takes, so this is both the cost and the chill.");
         }
 
+        internal override bool Fits(SpecialCall c)
+        {
+            return SpecialConfig.Fits(c.A, _radius) && SpecialConfig.Fits(c.B, _warning) && SpecialConfig.Fits(c.C, _lasts);
+        }
+
         internal override IEnumerator Run(SpecialRun run)
         {
             if (!Ground.CanDraw) yield break;

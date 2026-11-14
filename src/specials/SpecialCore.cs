@@ -30,6 +30,13 @@ namespace Vandi
         internal abstract void Bind(ConfigFile cfg);
         internal abstract IEnumerator Run(SpecialRun run);
         internal abstract IEnumerator Show(SpecialCall call);
+
+        /// <summary>
+        /// Whether a received call holds values this move's own config could have sent. Checked
+        /// against each setting's range, not its current value, because the sender's .cfg may
+        /// differ from this machine's while the ranges are compiled in and the same everywhere.
+        /// </summary>
+        internal abstract bool Fits(SpecialCall call);
     }
 
     /// <summary>What travels from the owner to every screen. Four floats and a count are enough for every move.</summary>
@@ -76,6 +83,28 @@ namespace Vandi
         internal static ConfigEntry<T> Bind<T>(ConfigFile cfg, string section, string key, T value, string text)
         {
             return cfg.Bind(section, key, value, text);
+        }
+
+        internal static AcceptableValueRange<float> Range(ConfigEntry<float> entry)
+        {
+            return (AcceptableValueRange<float>)entry.Description.AcceptableValues;
+        }
+
+        internal static bool Finite(float v)
+        {
+            return !float.IsNaN(v) && !float.IsInfinity(v);
+        }
+
+        internal static bool Fits(float v, ConfigEntry<float> entry)
+        {
+            AcceptableValueRange<float> range = Range(entry);
+            return Finite(v) && v >= range.MinValue && v <= range.MaxValue;
+        }
+
+        internal static bool Fits(int v, ConfigEntry<int> entry)
+        {
+            AcceptableValueRange<int> range = (AcceptableValueRange<int>)entry.Description.AcceptableValues;
+            return v >= range.MinValue && v <= range.MaxValue;
         }
 
         internal static void Bind(ConfigFile cfg)
@@ -470,10 +499,36 @@ namespace Vandi
             BossSpecial special = SpecialRegistry.ById(c.Id);
             if (special == null || ZNetScene.instance == null) return;
 
+            // Anyone can send this message, and the numbers in it drive loops and mesh counts on
+            // every screen (LHM-104): N spokes became N pairs of meshes in one frame, a zero speed
+            // or an infinite warning kept a coroutine and its decal alive until restart. So only
+            // the boss's owner is listened to, and only with values its config could produce.
+            // The owner's own copy passes too: a routed message to everybody reaches the sender
+            // with its session id, which is the id a ZDO owner is stored as.
+            ZDO boss = ZDOMan.instance == null ? null : ZDOMan.instance.GetZDO(c.BossId);
+            if (boss == null || boss.GetOwner() != sender) { Dropped(special, "not from the boss's owner"); return; }
+
+            c.N = Mathf.Clamp(c.N, 0, MaxCount);
+            if (!Finite(c.At) || !Finite(c.Aim) || !special.Fits(c)) { Dropped(special, "values out of range"); return; }
+
             c.Boss = Find(c.BossId);
             c.Target = Find(c.TargetId);
 
             FxHost.Run(special.Show(c));
+        }
+
+        // Above every count setting's range (30), so a real call is never clamped.
+        private const int MaxCount = 32;
+
+        private static bool Finite(Vector3 v)
+        {
+            return SpecialConfig.Finite(v.x) && SpecialConfig.Finite(v.y) && SpecialConfig.Finite(v.z);
+        }
+
+        private static void Dropped(BossSpecial special, string why)
+        {
+            if (VandiConfig.Verbose.Value)
+                VandiPlugin.Log.LogInfo("Boss special " + special.Name + ": ignored a call, " + why + ".");
         }
 
         private static Character Find(ZDOID id)
